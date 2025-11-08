@@ -1,13 +1,19 @@
 import React from 'react';
-import { Filters, PriceFilter, DateFilter } from '../types';
+import { useNavigate } from 'react-router-dom';
+import { User } from 'firebase/auth';
+import { Filters, PriceFilter, DateFilter } from '../../types';
 
 interface FilterBarProps {
   filters: Filters;
   onFilterChange: <K extends keyof Filters>(key: K, value: Filters[K]) => void;
   eventCount: number;
+  user: User | null;
+  onLogout: () => void;
 }
 
-const FilterBar: React.FC<FilterBarProps> = ({ filters, onFilterChange, eventCount }) => {
+const FilterBar: React.FC<FilterBarProps> = ({ filters, onFilterChange, eventCount, user, onLogout }) => {
+  const navigate = useNavigate();
+
   return (
     <div className="absolute top-0 left-0 right-0 z-10 p-4 bg-black/30 backdrop-blur-sm">
       <div className="container mx-auto">
@@ -49,6 +55,27 @@ const FilterBar: React.FC<FilterBarProps> = ({ filters, onFilterChange, eventCou
               <option value={DateFilter.NextWeek} className="text-black">Săptămâna Viitoare</option>
               <option value={DateFilter.ThisWeekend} className="text-black">În Weekend</option>
             </select>
+          </div>
+
+          <div className="flex gap-2 ml-auto">
+            {user ? (
+              <>
+                <span className="text-sm text-gray-300 px-3 py-2">{user.email}</span>
+                <button
+                  onClick={onLogout}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm font-medium transition-colors"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => navigate('/login')}
+                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded text-sm font-medium transition-colors"
+              >
+                Login
+              </button>
+            )}
           </div>
         </div>
       </div>

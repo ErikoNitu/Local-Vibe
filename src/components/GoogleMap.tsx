@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom/client';
-import { Event } from '../types';
+import { Event } from '../../types';
 import MapPinIcon from './icons/MapPinIcon';
 
 interface GoogleMapProps {
