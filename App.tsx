@@ -5,7 +5,10 @@ import { fetchEventsFromFirestore } from './src/services/firestore';
 import { useGoogleMapsApi } from './hooks/useGoogleMapsApi';
 import { useAuth } from './src/auth/useAuth';
 import { logout } from './src/auth/authActions';
+import { usePreferences } from './src/contexts/PreferencesContext';
+import { useLocation } from './src/contexts/LocationContext';
 import FilterBar from './src/components/FilterBar';
+import LocationSetup from './src/components/LocationSetup';
 import EventCard from './src/components/EventCard';
 import AddEventModal from './src/components/AddEventModal';
 import MainContent from './src/components/MainContent';
@@ -30,17 +33,58 @@ const App: React.FC = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { isLoaded: isMapsApiLoaded, error: mapError } = useGoogleMapsApi();
-  const { messages, handleSendMessage } = useEventChatbot(events, setChatbotSuggestedEvents, setIsChatbotFilterActive);
+  const { preferences } = usePreferences();
+  const { location, isLocationSet, setLocationSet } = useLocation();
+  
+  const handleSetSearchFilter = useCallback((search: string) => {
+    setFilters(prev => ({ ...prev, search }));
+  }, []);
+
+  // Calculate distance between two coordinates (Haversine formula)
+  const calculateDistance = useCallback((lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }, []);
+  
+  const { messages, handleSendMessage } = useEventChatbot(events, setChatbotSuggestedEvents, setIsChatbotFilterActive, handleSetSearchFilter);
 
   useEffect(() => {
     const loadEvents = async () => {
+      // Only load events if location is set
+      if (!isLocationSet) {
+        setIsLoadingEvents(false);
+        return;
+      }
+
       setIsLoadingEvents(true);
       try {
         console.log('Loading events from Firestore...');
+        console.log('User location:', location);
         // Only fetch events from Firebase database
         const firestoreEvents = await fetchEventsFromFirestore();
-        console.log(`Loaded ${firestoreEvents.length} events`);
-        setEvents(firestoreEvents);
+        console.log(`Loaded ${firestoreEvents.length} raw events from Firestore:`, firestoreEvents);
+        
+        // Calculate distance for each event
+        const eventsWithDistance = firestoreEvents.map(event => {
+          if (!event.position || typeof event.position.lat !== 'number' || typeof event.position.lng !== 'number') {
+            console.warn(`Event ${event.id} has invalid position:`, event.position);
+          }
+          const dist = calculateDistance(location.lat, location.lng, event.position.lat, event.position.lng);
+          console.log(`Event "${event.title}" at (${event.position.lat}, ${event.position.lng}) - Distance: ${dist.toFixed(2)}km`);
+          return {
+            ...event,
+            distance: dist
+          };
+        });
+        
+        console.log(`Events with distances calculated:`, eventsWithDistance);
+        setEvents(eventsWithDistance);
       } catch (error) {
         console.error('Error loading events:', error);
         // Fallback to empty array if Firestore fetch fails
@@ -50,14 +94,17 @@ const App: React.FC = () => {
       }
     };
     loadEvents();
-  }, []);
+  }, [isLocationSet, location, calculateDistance]);
 
   const handleFilterChange = useCallback(<K extends keyof Filters>(key: K, value: Filters[K]) => {
+    // If user clears the search (and we're in chatbot mode), clear the filter
+    if (key === 'search' && value === '' && isChatbotFilterActive) {
+      setChatbotSuggestedEvents([]);
+      setIsChatbotFilterActive(false);
+    }
+    
     setFilters(prev => ({ ...prev, [key]: value }));
-    // Clear chatbot suggestions when user manually filters
-    setChatbotSuggestedEvents([]);
-    setIsChatbotFilterActive(false);
-  }, []);
+  }, [isChatbotFilterActive]);
 
   const filteredEvents = useMemo(() => {
     // If chatbot has suggested events, show only those
@@ -66,13 +113,21 @@ const App: React.FC = () => {
     }
 
     // Otherwise, apply regular filters
-    return events.filter(event => {
+    console.log('[Filter] Starting filter with preferences:', preferences);
+    const result = events.filter(event => {
       const searchMatch = event.title.toLowerCase().includes(filters.search.toLowerCase()) ||
                           event.description.toLowerCase().includes(filters.search.toLowerCase());
 
       const priceMatch = filters.price === PriceFilter.All ||
                          (filters.price === PriceFilter.Free && event.isFree) ||
                          (filters.price === PriceFilter.Paid && !event.isFree);
+
+      // Check genre preferences (if preferences exist)
+      const genreMatch = preferences.genrePreferences.length === 0 || preferences.genrePreferences.includes(event.category);
+
+      // Check distance preferences (use pre-calculated distance on event)
+      const eventDistance = event.distance ?? calculateDistance(location.lat, location.lng, event.position.lat, event.position.lng);
+      const distanceMatch = eventDistance <= (preferences.maxDistance || 200);
 
       const now = new Date();
       const eventDate = new Date(event.date);
@@ -101,9 +156,19 @@ const App: React.FC = () => {
         }
       }
 
-      return searchMatch && priceMatch && dateMatch;
+      const shouldInclude = searchMatch && priceMatch && dateMatch && genreMatch && distanceMatch;
+      console.log(`Event "${event.title}": search=${searchMatch}, price=${priceMatch}, date=${dateMatch}, genre=${genreMatch} (${event.category}), distance=${distanceMatch} (${eventDistance.toFixed(2)}km / ${preferences.maxDistance}km), included=${shouldInclude}`);
+      return shouldInclude;
     });
-  }, [events, filters]);
+    
+    console.log(`Filtered events: ${result.length} out of ${events.length}`);
+    return result;
+  }, [events, filters, preferences, calculateDistance, location]);
+  
+  // Debug logging after filteredEvents is defined
+  useEffect(() => {
+    console.log('[App] State changed - isLocationSet:', isLocationSet, 'location:', location, 'raw events:', events.length, 'filteredEvents:', filteredEvents.length);
+  }, [isLocationSet, location, events, filteredEvents]);
   
   const handleClearChatbotFilter = useCallback(() => {
     setChatbotSuggestedEvents([]);
@@ -148,7 +213,12 @@ const App: React.FC = () => {
 
   return (
     <div className="h-screen w-screen bg-gray-900 text-white overflow-hidden relative">
-      <FilterBar filters={filters} onFilterChange={handleFilterChange} eventCount={filteredEvents.length} user={user} onLogout={handleLogout} onRefresh={handleRefreshEvents} />
+      {/* Show location setup if user hasn't set location yet */}
+      {!isLocationSet && (
+        <LocationSetup onComplete={() => setLocationSet(true)} />
+      )}
+
+      <FilterBar filters={filters} onFilterChange={handleFilterChange} eventCount={filteredEvents.length} user={user} onLogout={handleLogout} />
 
       <MainContent
         isLoadingEvents={isLoadingEvents}
@@ -172,7 +242,7 @@ const App: React.FC = () => {
       {/* Chatbot Button */}
       <button
         onClick={() => setIsChatbotOpen(true)}
-        className="fixed bottom-6 left-6 bg-purple-600 hover:bg-purple-700 text-white rounded-full p-4 shadow-lg transition-all hover:scale-110 z-30"
+        className="fixed bottom-4 sm:bottom-6 left-4 sm:left-6 bg-purple-600 hover:bg-purple-700 text-white rounded-full p-3 sm:p-4 shadow-lg transition-all duration-200 ease-out hover:scale-125 hover:shadow-xl z-30 text-lg sm:text-xl transform active:scale-95"
         aria-label="Open chat"
       >
         💬

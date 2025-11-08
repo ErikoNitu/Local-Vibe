@@ -5,6 +5,9 @@ import AppLayout from './src/pages/AppLayout';
 import { ProtectedRoute } from './src/components/ProtectedRoute';
 import App from './App';
 import Login from './src/pages/Login'
+import { ThemeProvider } from './src/contexts/ThemeContext';
+import { PreferencesProvider } from './src/contexts/PreferencesContext';
+import { LocationProvider } from './src/contexts/LocationContext';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -14,18 +17,24 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <Routes>
-        {/* Public routes - will add Login and Register here */}
-        <Route path="/login" element={<Login/>} />
-        {/* <Route path="/register" element={<div>Register Page - Coming Soon</div>} /> */}
-        
-        {/* Protected routes */}
-        <Route
-          path="/"
-          element={<AppLayout />}
-        />
-      </Routes>
-    </BrowserRouter>
+    <ThemeProvider>
+      <PreferencesProvider>
+        <LocationProvider>
+          <BrowserRouter>
+            <Routes>
+              {/* Public routes - will add Login and Register here */}
+              <Route path="/login" element={<Login/>} />
+              {/* <Route path="/register" element={<div>Register Page - Coming Soon</div>} /> */}
+              
+              {/* Protected routes */}
+              <Route
+                path="/"
+                element={<AppLayout />}
+              />
+            </Routes>
+          </BrowserRouter>
+        </LocationProvider>
+      </PreferencesProvider>
+    </ThemeProvider>
   </React.StrictMode>
 );

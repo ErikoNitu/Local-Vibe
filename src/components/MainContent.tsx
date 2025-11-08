@@ -22,7 +22,7 @@ const MainContent: React.FC<MainContentProps> = ({
 }) => {
   return (
     <main className="relative w-full h-full">
-      {isLoadingEvents || !isMapsApiLoaded || mapError ? (
+      {(!isMapsApiLoaded || mapError) ? (
         <MapsLoadingState isMapsApiLoaded={isMapsApiLoaded} mapError={mapError} />
       ) : (
         <GoogleMap

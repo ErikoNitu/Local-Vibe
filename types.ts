@@ -11,6 +11,8 @@ export interface Event {
     lng: number;
   };
   imageUrl: string;
+  photos?: string[]; // Array of photo URLs
+  distance?: number; // Distance from user location in km
 }
 
 export enum PriceFilter {
