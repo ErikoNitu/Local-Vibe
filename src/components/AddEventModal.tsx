@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Event } from '../types';
+import { useAuth } from '../auth/useAuth';
+import { addEventToFirestore } from '../services/firestore';
+import { Event } from '../../types';
 import XIcon from './icons/XIcon';
 
 interface AddEventModalProps {
@@ -11,18 +13,47 @@ interface AddEventModalProps {
 const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEvent }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [date, setDate] = useState('');
   const [category, setCategory] = useState('Muzică');
   const [organizer, setOrganizer] = useState('');
   const [isFree, setIsFree] = useState(false);
+  const { user } = useAuth();
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !description || !date || !organizer) {
         alert('Te rog completează toate câmpurile obligatorii.');
         return;
+    }
+
+    if (!user) {
+      alert('Te rog autentifică-te pentru a adăuga un eveniment.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const eventData = {
+        title,
+        description,
+        date,
+        isFree,
+        category,
+        organizer,
+      };
+
+      await addEventToFirestore(eventData, user.uid, user.displayName);
+      
+      alert('Evenimentul a fost adăugat cu succes!');
+    } catch (error) {
+      console.error('Failed to add event:', error);
+      alert('Eroare la adăugarea evenimentului. Te rog încearcă din nou.');
+      setIsSubmitting(false);
+      return;
     }
     
     onAddEvent({
@@ -37,6 +68,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
     // Reset form and close
     setTitle('');
     setDescription('');
+    setIsSubmitting(false);
     setDate('');
     setCategory('Muzică');
     setOrganizer('');
@@ -82,7 +114,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
               <input type="checkbox" checked={isFree} onChange={e => setIsFree(e.target.checked)} className="h-5 w-5 rounded bg-gray-700 text-purple-500 focus:ring-purple-500" />
               <span>Eveniment Gratuit</span>
             </label>
-            <button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-lg transition-colors">
+            <button type="submit" disabled={isSubmitting} className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg transition-colors">
               Publică Eveniment
             </button>
           </form>

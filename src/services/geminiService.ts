@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { Event } from '../types';
+import { Event } from '../../types';
 
 const fetchMockEvents = async (): Promise<Event[]> => {
   // This check is for the development environment.
