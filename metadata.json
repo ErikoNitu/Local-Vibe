@@ -1,0 +1,7 @@
+{
+  "name": "Local Vibe",
+  "description": "A web application to discover local events on a map, with search and filtering capabilities. Organizers can also add their own events.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
