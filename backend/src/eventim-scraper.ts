@@ -1,141 +1,108 @@
-import puppeteer from 'puppeteer';
 import * as fs from 'fs';
+import { GenerativeModel, GoogleGenerativeAI } from "@google/generative-ai";
 
-interface ScrapedEvent {
+
+export interface Event {
   title: string;
-  date: string;
-  price: string;
   description: string;
-  url: string;
+  date: string;
+  time: string;
+  location: string;
+  organizer: string;
+  genre: string;
+  isFree: boolean;
+  url?: string;
 }
 
-export async function scrapeEventim(): Promise<ScrapedEvent[]> {
-  let browser;
+async function callModel(model: GenerativeModel, prompt: string, attempt = 1): Promise<string> {
+	try {
+	  const result = await model.generateContent(prompt);
+	  return result.response.text();
+	} catch (e: any) {
+	  if (attempt < 3) {
+		const wait = 1000 * attempt;
+		console.warn(`model overloaded, retry #${attempt} in ${wait}ms`);
+		await new Promise(res => setTimeout(res, wait));
+		return callModel(model, prompt, attempt + 1);
+	  }
+	  throw e;
+	}
+  }
   
+
+export async function scrapeEventim(): Promise<Event[]> {
   try {
-    console.log('🚀 Launching browser...');
-    browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--ignore-certificate-errors'
-      ]
-    });
-
-    const page = await browser.newPage();
+    const apiKey = "AIzaSyDpnzkshRcsXfgwtiej859bPQ-gQ56q9p0";
     
-    // Set user agent
-    await page.setUserAgent(
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-    );
-
-    console.log('📍 Navigating to Eventim.ro...');
-    await page.goto('https://www.eventim.ro/', {
-      waitUntil: 'domcontentloaded',
-      timeout: 30000
-    });
-
-    // Wait for events to load
-    console.log('⏳ Waiting for events to load...');
-    await page.evaluate(() => new Promise(resolve => setTimeout(resolve, 3000)));
-
-    // Scroll to load more events
-    console.log('📜 Scrolling to load more events...');
-    for (let i = 0; i < 5; i++) {
-      await page.evaluate(() => window.scrollBy(0, window.innerHeight));
-      await page.evaluate(() => new Promise(resolve => setTimeout(resolve, 500)));
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY environment variable is not set");
     }
 
-    // Save screenshot to see what we're scraping
-    await page.screenshot({ path: 'eventim-screenshot.png' });
-    console.log('📸 Screenshot saved to eventim-screenshot.png');
+    console.log('🤖 Initializing Gemini AI...');
+	
+	const genai = new GoogleGenerativeAI(apiKey);
+	const model = genai.getGenerativeModel({ model: "gemini-2.5-flash" });
+	
+	
+    const prompt = `You are an event discovery assistant. Search for and compile a list of 100 upcoming events happening in Bucharest in the next month. 
+	
+For each event, provide the following information in JSON format:
+{
+  "title": "Event Name",
+  "description": "Brief description of the event",
+  "date": "YYYY-MM-DD",
+  "time": "HH:MM",
+  "location": "Exact address",
+  "organizer": "Organization name",
+  "genre": "Category (e.g., Music, Sports, Art, Conference, Theatre, etc.)",
+  "isFree": true/false,
+  "url": "Website or link if available"
+}
 
-    // Extract event data from the page
-    console.log('🔍 Extracting event data...');
-    const events = await page.evaluate(() => {
-      const results: ScrapedEvent[] = [];
-      
-      // Try different selectors for event containers
-      const selectors = [
-        '.event-card',
-        'article',
-        '.product-card',
-        '[data-qa="search-result-item"]',
-        '.event-item'
-      ];
+Return a JSON array with exactly 50 events. Make sure to include:
+- A mix of different genres and types of events
+- Events from different locations from Bucharest
+- Both free and paid events
+- Realistic and current events
+- Dates within the next month from today, evenly distributed
 
-      let eventElements: any[] = [];
+Return ONLY valid JSON, no other text.`;
+
+
+    console.log('📡 Sending request to Gemini API...');
+	const text = await callModel(model, prompt);
+
+
+    console.log('✅ Received response from Gemini');
+
+    // Parse the JSON response
+    let events: Event[] = [];
+    try {
+      // Extract JSON from the response (in case there's extra text)
+      const jsonMatch = text.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) {
+        throw new Error("No JSON array found in response");
+      }
       
-      for (const selector of selectors) {
-        const elements = document.querySelectorAll(selector);
-        if (elements.length > 0) {
-          eventElements = Array.from(elements);
-          break;
-        }
+      events = JSON.parse(jsonMatch[0]);
+
+      // Validate events
+      if (!Array.isArray(events)) {
+        throw new Error("Response is not an array");
       }
 
-      eventElements.forEach((element) => {
-        try {
-          // Extract title
-          const titleEl = element.querySelector('h2, h3, .event-title, .product-name, .title');
-          const title = titleEl?.textContent?.trim() || '';
+      console.log(`✅ Successfully parsed ${events.length} events from Gemini`);
+      return events;
 
-          // Extract date
-          const dateEl = element.querySelector('.event-date, time, .date, [data-qa="event-date"]');
-          const date = dateEl?.textContent?.trim() || dateEl?.getAttribute('datetime') || 'Date TBA';
-
-          // Extract price
-          const priceEl = element.querySelector('.price, .event-price, .product-price, [data-qa="price"]');
-          const price = priceEl?.textContent?.trim() || 'Price not available';
-
-          // Extract description/category
-          const descEl = element.querySelector('.description, .subtitle, .event-description, .category, p');
-          const description = descEl?.textContent?.trim() || 'Event';
-
-          // Extract URL
-          const linkEl = element.querySelector('a[href]');
-          let url = linkEl?.getAttribute('href') || '';
-          
-          if (url && !url.startsWith('http')) {
-            url = `https://www.eventim.ro${url}`;
-          }
-
-          // Only add if we have a title
-          if (title && title.length > 3) {
-            results.push({
-              title,
-              date,
-              price,
-              description: description.substring(0, 200),
-              url
-            });
-          }
-        } catch (err) {
-          console.error('Error parsing event element:', err);
-        }
-      });
-
-      return results;
-    });
-
-    console.log(`✅ Found ${events.length} events`);
-
-    // Remove duplicates
-    const uniqueEvents = Array.from(
-      new Map(events.map(event => [event.title, event])).values()
-    );
-
-    return uniqueEvents.slice(0, 50); // Limit to 50 events
+    } catch (parseError) {
+      console.error("❌ Error parsing Gemini response:", parseError);
+      console.error("Raw response:", text.substring(0, 500));
+      throw new Error(`Failed to parse event data: ${parseError instanceof Error ? parseError.message : "Unknown error"}`);
+    }
 
   } catch (error) {
-    console.error('❌ Error during scraping:', error);
-    throw new Error(`Scraping failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  } finally {
-    if (browser) {
-      await browser.close();
-      console.log('🔌 Browser closed');
-    }
+    console.error('❌ Error fetching events from Gemini:', error);
+    throw new Error(`Event fetching failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -156,8 +123,11 @@ async function main() {
     events.slice(0, 3).forEach((event, idx) => {
       console.log(`\n${idx + 1}. ${event.title}`);
       console.log(`   Date: ${event.date}`);
-      console.log(`   Price: ${event.price}`);
-      console.log(`   Type: ${event.description}`);
+      console.log(`   Time: ${event.time}`);
+      console.log(`   Location: ${event.location}`);
+      console.log(`   Organizer: ${event.organizer}`);
+      console.log(`   Genre: ${event.genre}`);
+      console.log(`   Free: ${event.isFree}`);
     });
 
   } catch (error) {
