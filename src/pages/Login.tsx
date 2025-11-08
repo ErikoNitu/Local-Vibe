@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';
-import {auth, googleProvider, firebaseConfig,signInWithPopup,
+import {auth, googleProvider,signInWithPopup, //signOut,
 	signInWithEmailAndPassword,
 	createUserWithEmailAndPassword } from '../services/firebase.ts'
 
@@ -9,18 +9,6 @@ import {auth, googleProvider, firebaseConfig,signInWithPopup,
 // Initialize Firebase (in a real app, this would be in a separate config file)
 // let auth: any = null;
 // let googleProvider: any = null;
-
-const initFirebase = async () => {
-  if (typeof window !== 'undefined' && !auth) {
-    try {
-      
-      return { signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword };
-    } catch (error) {
-      console.error('Firebase initialization error:', error);
-      throw error;
-    }
-  }
-};
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -36,9 +24,9 @@ export default function LoginPage() {
     setError('');
     
     try {
-      const { signInWithPopup } = await initFirebase();
       const result = await signInWithPopup(auth, googleProvider);
       setUser(result.user);
+      navigate('/');
     } catch (err: any) {
       setError(err.message || 'Failed to sign in with Google');
     } finally {
@@ -56,14 +44,14 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const { signInWithEmailAndPassword, createUserWithEmailAndPassword } = await initFirebase();
-      
       if (isLogin) {
         const result = await signInWithEmailAndPassword(auth, email, password);
         setUser(result.user);
+        navigate('/');
       } else {
         const result = await createUserWithEmailAndPassword(auth, email, password);
         setUser(result.user);
+        navigate('/');
       }
     } catch (err: any) {
       let errorMessage = 'Authentication failed';
@@ -87,7 +75,7 @@ export default function LoginPage() {
   };
 
   const handleSignOut = () => {
-    auth?.signOut();
+    // signOut(auth);
     setUser(null);
     setEmail('');
     setPassword('');

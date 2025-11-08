@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAuth } from '../auth/useAuth';
 import PlusIcon from './icons/PlusIcon';
 
 interface AddEventButtonProps {
@@ -6,6 +7,12 @@ interface AddEventButtonProps {
 }
 
 const AddEventButton: React.FC<AddEventButtonProps> = ({ onClick }) => {
+  const { user } = useAuth();
+
+  if (!user) {
+    return null;
+  }
+
   return (
     <button
       onClick={onClick}
