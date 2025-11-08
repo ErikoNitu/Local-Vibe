@@ -23,6 +23,8 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
   const [lng, setLng] = useState<number | null>(null);
   const [locationSuggestions, setLocationSuggestions] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
   const { user } = useAuth();
 
   if (!isOpen) return null;
@@ -38,8 +40,16 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
 
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`,
+        {
+          headers: {
+            'Accept': 'application/json',
+          }
+        }
       );
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
       setLocationSuggestions(data);
       setShowSuggestions(true);
@@ -54,6 +64,26 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
     setLng(parseFloat(suggestion.lon));
     setLocationSuggestions([]);
     setShowSuggestions(false);
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    Array.from(files).forEach((file: File) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setPhotos(prev => [...prev, base64String]);
+        setPhotoPreviews(prev => [...prev, base64String]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos(prev => prev.filter((_, i) => i !== index));
+    setPhotoPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -82,6 +112,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
           lat,
           lng,
         },
+        photos,
       };
 
       await addEventToFirestore(eventData, user.uid, user.displayName);
@@ -105,6 +136,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
         lat,
         lng,
       },
+      photos,
     });
     
     // Reset form and close
@@ -118,35 +150,37 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
     setLocation('');
     setLat(null);
     setLng(null);
+    setPhotos([]);
+    setPhotoPreviews([]);
     onClose();
   };
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 transition-all duration-300 ease-out"
       onClick={onClose}
     >
       <div
-        className="relative bg-gray-800 text-white rounded-2xl shadow-2xl w-full max-w-md animate-fade-in-up"
+        className="relative bg-gray-800 text-white rounded-2xl shadow-2xl w-full max-w-md sm:max-w-lg transition-all duration-300 ease-out transform animate-in fade-in zoom-in"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold">Adaugă Evenimentul Tău</h2>
+        <div className="p-4 sm:p-6">
+          <div className="flex justify-between items-center mb-3 sm:mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold">Adaugă Evenimentul Tău</h2>
             <button
               onClick={onClose}
-              className="bg-gray-700/50 rounded-full p-2 text-white hover:bg-gray-700 transition-colors"
+              className="bg-gray-700/50 rounded-full p-2 text-white hover:bg-gray-700 transition-all duration-200 hover:scale-110 hover:rotate-90"
               aria-label="Close"
             >
-              <XIcon className="w-6 h-6" />
+              <XIcon className="w-5 sm:w-6 h-5 sm:h-6" />
             </button>
           </div>
           
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <input type="text" placeholder="Titlu Eveniment" value={title} onChange={e => setTitle(e.target.value)} className="w-full p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" required />
-            <textarea placeholder="Descriere" value={description} onChange={e => setDescription(e.target.value)} className="w-full p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" rows={3} required></textarea>
-            <input type="datetime-local" value={date} onChange={e => setDate(e.target.value)} className="w-full p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-400" required />
-            <input type="text" placeholder="Nume Organizator" value={organizer} onChange={e => setOrganizer(e.target.value)} className="w-full p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" required />
+          <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+            <input type="text" placeholder="Titlu Eveniment" value={title} onChange={e => setTitle(e.target.value)} className="w-full p-2 sm:p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base" required />
+            <textarea placeholder="Descriere" value={description} onChange={e => setDescription(e.target.value)} className="w-full p-2 sm:p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base" rows={3} required></textarea>
+            <input type="datetime-local" value={date} onChange={e => setDate(e.target.value)} className="w-full p-2 sm:p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-400 text-sm sm:text-base" required />
+            <input type="text" placeholder="Nume Organizator" value={organizer} onChange={e => setOrganizer(e.target.value)} className="w-full p-2 sm:p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base" required />
             
             {/* Location Input with Autocomplete */}
             <div className="relative">
@@ -156,7 +190,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
                 value={location} 
                 onChange={e => handleLocationSearch(e.target.value)}
                 onFocus={() => location.length >= 2 && setShowSuggestions(true)}
-                className="w-full p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" 
+                className="w-full p-2 sm:p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base" 
                 required 
               />
               {lat && lng && (
@@ -171,7 +205,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
                       key={idx}
                       type="button"
                       onClick={() => handleSelectLocation(suggestion)}
-                      className="w-full text-left p-3 hover:bg-gray-600 text-sm text-gray-200 border-b border-gray-600 last:border-b-0 transition-colors"
+                      className="w-full text-left p-2 sm:p-3 hover:bg-gray-600 text-xs sm:text-sm text-gray-200 border-b border-gray-600 last:border-b-0 transition-colors"
                     >
                       📍 {suggestion.display_name}
                     </button>
@@ -180,7 +214,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
               )}
             </div>
             
-            <select value={category} onChange={e => setCategory(e.target.value)} className="w-full p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+            <select value={category} onChange={e => setCategory(e.target.value)} className="w-full p-2 sm:p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base" required>
                 <option>Muzică</option>
                 <option>Artă</option>
                 <option>Sport</option>
@@ -188,11 +222,47 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
                 <option>Teatru</option>
                 <option>Educație</option>
             </select>
+
+            {/* Photo Upload Section */}
+            <div className="border-2 border-dashed border-purple-500/50 rounded-lg p-3 sm:p-4">
+              <label className="block text-sm font-medium mb-2">Adaugă Fotografii</label>
+              <input 
+                type="file" 
+                multiple 
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                className="w-full text-xs sm:text-sm text-gray-400 cursor-pointer"
+              />
+              {photoPreviews.length > 0 && (
+                <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {photoPreviews.map((preview, idx) => (
+                    <div key={idx} className="relative group">
+                      <img 
+                        src={preview} 
+                        alt={`Preview ${idx}`} 
+                        className="w-full h-20 object-cover rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removePhoto(idx)}
+                        className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <XIcon className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {photos.length > 0 && (
+                <p className="text-xs text-green-400 mt-2">✓ {photos.length} foto(i) selectată(e)</p>
+              )}
+            </div>
+
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={isFree} onChange={e => setIsFree(e.target.checked)} className="h-5 w-5 rounded bg-gray-700 text-purple-500 focus:ring-purple-500" />
-              <span>Eveniment Gratuit</span>
+              <input type="checkbox" checked={isFree} onChange={e => setIsFree(e.target.checked)} className="h-4 sm:h-5 w-4 sm:w-5 rounded bg-gray-700 text-purple-500 focus:ring-purple-500" />
+              <span className="text-sm sm:text-base">Eveniment Gratuit</span>
             </label>
-            <button type="submit" disabled={isSubmitting || !lat || !lng} className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg transition-colors">
+            <button type="submit" disabled={isSubmitting || !lat || !lng} className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-2 sm:py-3 rounded-lg transition-colors text-sm sm:text-base">
               Publică Eveniment
             </button>
           </form>

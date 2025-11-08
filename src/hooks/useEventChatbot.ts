@@ -8,7 +8,7 @@ export interface ChatMessage {
   suggestedEvents?: Event[];
 }
 
-export const useEventChatbot = (allEvents: Event[], onSuggestedEventsChange?: (events: Event[]) => void, onFilterActiveChange?: (isActive: boolean) => void) => {
+export const useEventChatbot = (allEvents: Event[], onSuggestedEventsChange?: (events: Event[]) => void, onFilterActiveChange?: (isActive: boolean) => void, onSetSearchFilter?: (search: string) => void) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'model',
@@ -39,6 +39,11 @@ export const useEventChatbot = (allEvents: Event[], onSuggestedEventsChange?: (e
       // Notify that chatbot filter is active
       if (onFilterActiveChange) {
         onFilterActiveChange(suggestedEvents.length > 0);
+      }
+
+      // Set the search filter to "chatbot recommended"
+      if (onSetSearchFilter && suggestedEvents.length > 0) {
+        onSetSearchFilter('chatbot recommended');
       }
 
       // Create a user-friendly message about the results
@@ -73,7 +78,7 @@ export const useEventChatbot = (allEvents: Event[], onSuggestedEventsChange?: (e
         onFilterActiveChange(false);
       }
     }
-  }, [allEvents, onSuggestedEventsChange, onFilterActiveChange]);
+  }, [allEvents, onSuggestedEventsChange, onFilterActiveChange, onSetSearchFilter]);
 
   return { messages, handleSendMessage };
 };
