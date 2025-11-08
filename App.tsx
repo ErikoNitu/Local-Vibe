@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Event, Filters, PriceFilter, DateFilter } from './types';
-import { fetchMockEvents } from './src/services/geminiService';
+import { fetchEventsFromFirestore } from './src/services/firestore';
 import { useGoogleMapsApi } from './hooks/useGoogleMapsApi';
 import { useAuth } from './src/auth/useAuth';
 import { logout } from './src/auth/authActions';
@@ -10,12 +10,17 @@ import EventCard from './src/components/EventCard';
 import AddEventModal from './src/components/AddEventModal';
 import MainContent from './src/components/MainContent';
 import AddEventButton from './src/components/AddEventButton';
+import ChatbotSidePanel from './src/components/ChatbotSidePanel';
+import { useEventChatbot } from './src/hooks/useEventChatbot';
 
 const App: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isLoadingEvents, setIsLoadingEvents] = useState<boolean>(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
+  const [isChatbotOpen, setIsChatbotOpen] = useState<boolean>(false);
+  const [chatbotSuggestedEvents, setChatbotSuggestedEvents] = useState<Event[]>([]);
+  const [isChatbotFilterActive, setIsChatbotFilterActive] = useState<boolean>(false);
   const [filters, setFilters] = useState<Filters>({
     price: PriceFilter.All,
     date: DateFilter.All,
@@ -25,22 +30,42 @@ const App: React.FC = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { isLoaded: isMapsApiLoaded, error: mapError } = useGoogleMapsApi();
+  const { messages, handleSendMessage } = useEventChatbot(events, setChatbotSuggestedEvents, setIsChatbotFilterActive);
 
   useEffect(() => {
     const loadEvents = async () => {
       setIsLoadingEvents(true);
-      const fetchedEvents = await fetchMockEvents();
-      setEvents(fetchedEvents);
-      setIsLoadingEvents(false);
+      try {
+        console.log('Loading events from Firestore...');
+        // Only fetch events from Firebase database
+        const firestoreEvents = await fetchEventsFromFirestore();
+        console.log(`Loaded ${firestoreEvents.length} events`);
+        setEvents(firestoreEvents);
+      } catch (error) {
+        console.error('Error loading events:', error);
+        // Fallback to empty array if Firestore fetch fails
+        setEvents([]);
+      } finally {
+        setIsLoadingEvents(false);
+      }
     };
     loadEvents();
   }, []);
 
   const handleFilterChange = useCallback(<K extends keyof Filters>(key: K, value: Filters[K]) => {
     setFilters(prev => ({ ...prev, [key]: value }));
+    // Clear chatbot suggestions when user manually filters
+    setChatbotSuggestedEvents([]);
+    setIsChatbotFilterActive(false);
   }, []);
 
   const filteredEvents = useMemo(() => {
+    // If chatbot has suggested events, show only those
+    if (chatbotSuggestedEvents.length > 0) {
+      return chatbotSuggestedEvents;
+    }
+
+    // Otherwise, apply regular filters
     return events.filter(event => {
       const searchMatch = event.title.toLowerCase().includes(filters.search.toLowerCase()) ||
                           event.description.toLowerCase().includes(filters.search.toLowerCase());
@@ -80,14 +105,15 @@ const App: React.FC = () => {
     });
   }, [events, filters]);
   
-  const handleAddEvent = (newEventData: Omit<Event, 'id' | 'position' | 'imageUrl'>) => {
+  const handleClearChatbotFilter = useCallback(() => {
+    setChatbotSuggestedEvents([]);
+    setIsChatbotFilterActive(false);
+  }, []);
+  
+  const handleAddEvent = (newEventData: Omit<Event, 'id' | 'imageUrl'>) => {
     const newEvent: Event = {
         ...newEventData,
         id: `user-${Date.now()}`,
-        position: {
-            lat: 44.43 + (Math.random() - 0.5) * 0.1,
-            lng: 26.10 + (Math.random() - 0.5) * 0.1,
-        },
         imageUrl: `https://picsum.photos/seed/${newEventData.title.split(' ')[0] || 'event'}/400/300`,
     };
     setEvents(prev => [...prev, newEvent]);
@@ -95,6 +121,20 @@ const App: React.FC = () => {
   
   const handleEventClick = useCallback((event: Event) => {
     setSelectedEvent(event);
+  }, []);
+
+  const handleRefreshEvents = useCallback(async () => {
+    setIsLoadingEvents(true);
+    try {
+      console.log('Refreshing events from Firestore...');
+      const firestoreEvents = await fetchEventsFromFirestore();
+      console.log(`Refreshed: Loaded ${firestoreEvents.length} events`);
+      setEvents(firestoreEvents);
+    } catch (error) {
+      console.error('Error refreshing events:', error);
+    } finally {
+      setIsLoadingEvents(false);
+    }
   }, []);
 
   const handleLogout = async () => {
@@ -108,7 +148,7 @@ const App: React.FC = () => {
 
   return (
     <div className="h-screen w-screen bg-gray-900 text-white overflow-hidden relative">
-      <FilterBar filters={filters} onFilterChange={handleFilterChange} eventCount={filteredEvents.length} user={user} onLogout={handleLogout} />
+      <FilterBar filters={filters} onFilterChange={handleFilterChange} eventCount={filteredEvents.length} user={user} onLogout={handleLogout} onRefresh={handleRefreshEvents} />
 
       <MainContent
         isLoadingEvents={isLoadingEvents}
@@ -127,6 +167,26 @@ const App: React.FC = () => {
         isOpen={isAddModalOpen} 
         onClose={() => setIsAddModalOpen(false)}
         onAddEvent={handleAddEvent}
+      />
+
+      {/* Chatbot Button */}
+      <button
+        onClick={() => setIsChatbotOpen(true)}
+        className="fixed bottom-6 left-6 bg-purple-600 hover:bg-purple-700 text-white rounded-full p-4 shadow-lg transition-all hover:scale-110 z-30"
+        aria-label="Open chat"
+      >
+        💬
+      </button>
+
+      {/* Chatbot Panel */}
+      <ChatbotSidePanel
+        isOpen={isChatbotOpen}
+        onClose={() => setIsChatbotOpen(false)}
+        messages={messages}
+        onSendMessage={handleSendMessage}
+        onEventClick={handleEventClick}
+        isChatbotFilterActive={isChatbotFilterActive}
+        onClearFilter={handleClearChatbotFilter}
       />
     </div>
   );

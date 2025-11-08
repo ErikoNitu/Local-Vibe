@@ -9,9 +9,10 @@ interface FilterBarProps {
   eventCount: number;
   user: User | null;
   onLogout: () => void;
+  onRefresh?: () => void;
 }
 
-const FilterBar: React.FC<FilterBarProps> = ({ filters, onFilterChange, eventCount, user, onLogout }) => {
+const FilterBar: React.FC<FilterBarProps> = ({ filters, onFilterChange, eventCount, user, onLogout, onRefresh }) => {
   const navigate = useNavigate();
 
   return (
@@ -58,6 +59,15 @@ const FilterBar: React.FC<FilterBarProps> = ({ filters, onFilterChange, eventCou
           </div>
 
           <div className="flex gap-2 ml-auto">
+            {onRefresh && (
+              <button
+                onClick={onRefresh}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium transition-colors"
+                title="Refresh events from database"
+              >
+                🔄 Refresh
+              </button>
+            )}
             {user ? (
               <>
                 <span className="text-sm text-gray-300 px-3 py-2">{user.email}</span>

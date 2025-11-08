@@ -1,11 +1,11 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { Event } from '../../types';
+import { Event } from '../types';
 
 const fetchMockEvents = async (): Promise<Event[]> => {
   // This check is for the development environment.
   // In a real production environment, the API key would be managed securely.
-  if (!process.env.API_KEY) {
-    console.warn("API_KEY environment variable not set. Returning static mock data.");
+  if (!import.meta.env.VITE_REACT_APP_GEMINI_API_KEY) {
+    console.warn("VITE_REACT_APP_GEMINI_API_KEY environment variable not set. Returning static mock data.");
     // Return a single static event if API key is not available
     return [
         {
@@ -22,7 +22,7 @@ const fetchMockEvents = async (): Promise<Event[]> => {
     ];
   }
 
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_REACT_APP_GEMINI_API_KEY });
 
   try {
     const response = await ai.models.generateContent({
@@ -94,4 +94,46 @@ const fetchMockEvents = async (): Promise<Event[]> => {
   }
 };
 
-export { fetchMockEvents };
+const parseUserInputWithGemini = async (userInput: string, events: Event[]): Promise<string[]> => {
+  if (!import.meta.env.VITE_REACT_APP_GEMINI_API_KEY) {
+    return [];
+  }
+
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_REACT_APP_GEMINI_API_KEY });
+
+  try {
+    const eventsContext = events.map((e, index) => 
+      `${index}. "${e.title}" (ID: ${e.id}, Category: ${e.category}): ${e.description} on ${new Date(e.date).toLocaleDateString()}, Free: ${e.isFree}, Organizer: ${e.organizer}`
+    ).join('\n');
+
+    const prompt = `You are an AI Event Assistant for finding events in Bucharest.
+
+Available events with indices:
+${eventsContext}
+
+User question: ${userInput}
+
+IMPORTANT: Respond ONLY with a JSON array of event IDs that match the user's interests. For example: ["event-1", "event-5", "event-10"]
+If no events match, return an empty array: []
+Do NOT include any other text, only the JSON array.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt
+    });
+
+    const responseText = response.text.trim();
+    // Extract JSON array from the response
+    const jsonMatch = responseText.match(/\[.*\]/s);
+    if (jsonMatch) {
+      const eventIds = JSON.parse(jsonMatch[0]);
+      return Array.isArray(eventIds) ? eventIds : [];
+    }
+    return [];
+  } catch (error) {
+    console.error("Error calling Gemini API:", error);
+    return [];
+  }
+};
+
+export { fetchMockEvents, parseUserInputWithGemini };
