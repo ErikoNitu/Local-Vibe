@@ -1,3 +1,6 @@
+/* Import Inter font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
 /* Smooth fade and zoom animations */
 @keyframes fadeIn {
   from {
@@ -92,6 +95,7 @@
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
 }
 
 /* Light mode styling */
@@ -103,6 +107,31 @@ html:not(.dark) {
 
 html:not(.dark) body {
   background-color: #f9fafb;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #000000;
+}
+
+/* Light mode text color for all elements */
+html:not(.dark) * {
+  color: #000000;
+}
+
+html:not(.dark) h1,
+html:not(.dark) h2,
+html:not(.dark) h3,
+html:not(.dark) h4,
+html:not(.dark) h5,
+html:not(.dark) h6,
+html:not(.dark) p,
+html:not(.dark) span,
+html:not(.dark) div,
+html:not(.dark) button,
+html:not(.dark) input,
+html:not(.dark) select,
+html:not(.dark) option,
+html:not(.dark) textarea,
+html:not(.dark) label {
+  color: #000000;
 }
 
 /* Dark mode (default) */
@@ -114,6 +143,7 @@ html.dark {
 
 html.dark body {
   background-color: #000000;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 /* Smooth button interactions */
