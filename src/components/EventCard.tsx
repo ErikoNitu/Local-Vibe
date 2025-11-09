@@ -83,7 +83,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, onClose }) => {
 
   return (
     <div 
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-center justify-center p-2 sm:p-4 transition-all duration-500 ease-out"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-center justify-center p-2 sm:p-4 pt-24 sm:pt-28 transition-all duration-500 ease-out"
       onClick={onClose}
       style={{ animation: 'fadeIn 0.5s ease-out' }}
     >

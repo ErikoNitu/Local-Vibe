@@ -20,7 +20,7 @@ const FilterBar: React.FC<FilterBarProps> = ({ filters, onFilterChange, eventCou
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
 
   return (
-    <div className="fixed top-3 left-3 right-3 z-50 p-2 sm:p-3 md:p-4 bg-gray-800/60 backdrop-blur-lg border border-white/30 shadow-2xl rounded-full">
+    <div className="fixed top-3 left-3 right-3 z-50 p-2 sm:p-3 md:p-4 bg-gray-800/60 backdrop-blur-lg border border-white/30 shadow-2xl rounded-3xl sm:rounded-full">
       <div className="w-full px-1 sm:px-4">
         {/* Mobile: Logo on top, filters below */}
         <div className="md:hidden mb-3">
@@ -74,14 +74,14 @@ const FilterBar: React.FC<FilterBarProps> = ({ filters, onFilterChange, eventCou
 
             {/* Mobile Dropdown Menu */}
             {isFilterMenuOpen && (
-              <div className="absolute top-full right-0 mt-2 bg-gray-800/60 backdrop-blur-lg border border-white/30 rounded-full shadow-xl z-20 w-48 p-3 space-y-3">
+              <div className="absolute top-full right-0 mt-2 bg-gray-800/60 backdrop-blur-lg border border-white/30 rounded-2xl shadow-xl z-20 w-48 p-3 space-y-3">
                 {/* Price Filter */}
                 <div>
                   <label className="block text-xs sm:text-xs font-semibold text-gray-300 mb-2">Price</label>
                   <select
                     value={filters.price}
                     onChange={(e) => onFilterChange('price', e.target.value as PriceFilter)}
-                    className="w-full bg-white/20 backdrop-blur-md text-white rounded-full px-2 py-1.5 focus:outline-none appearance-none cursor-pointer text-xs transition-all hover:bg-white/30 focus:ring-2 focus:ring-purple-400/50 border border-white/40"
+                    className="w-full bg-white/20 backdrop-blur-md text-white rounded-xl px-2 py-1.5 focus:outline-none appearance-none cursor-pointer text-xs transition-all hover:bg-white/30 focus:ring-2 focus:ring-purple-400/50 border border-white/40"
                   >
                     <option value={PriceFilter.All}>All Price</option>
                     <option value={PriceFilter.Free}>Free</option>
@@ -95,7 +95,7 @@ const FilterBar: React.FC<FilterBarProps> = ({ filters, onFilterChange, eventCou
                   <select
                     value={filters.date}
                     onChange={(e) => onFilterChange('date', e.target.value as DateFilter)}
-                    className="w-full bg-white/20 backdrop-blur-md text-white rounded-full px-2 py-1.5 focus:outline-none appearance-none cursor-pointer text-xs transition-all hover:bg-white/30 focus:ring-2 focus:ring-purple-400/50 border border-white/40"
+                    className="w-full bg-white/20 backdrop-blur-md text-white rounded-xl px-2 py-1.5 focus:outline-none appearance-none cursor-pointer text-xs transition-all hover:bg-white/30 focus:ring-2 focus:ring-purple-400/50 border border-white/40"
                   >
                     <option value={DateFilter.All}>Anytime</option>
                     <option value={DateFilter.Today}>Today</option>
