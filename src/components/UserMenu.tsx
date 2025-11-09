@@ -8,7 +8,11 @@ import MyEventsModal from './MyEventsModal.tsx';
 import LocationModal from './LocationModal.tsx';
 import { AlignCenter } from 'lucide-react';
 
-const UserMenu: React.FC = () => {
+interface UserMenuProps {
+  onEventUpdated?: () => void;
+}
+
+const UserMenu: React.FC<UserMenuProps> = ({ onEventUpdated }) => {
   const { user, logout } = useAuth();
   const { isDarkMode } = useTheme();
   const { location } = useLocation();
@@ -46,42 +50,36 @@ const UserMenu: React.FC = () => {
       }}>
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full transition-all duration-200 ${
+          className={`flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl transition-all duration-300 backdrop-blur-md border border-white/40 shadow-lg hover:shadow-xl ${
             user
-              ? isDarkMode 
-                ? 'bg-purple-600 hover:bg-purple-700 text-white' 
-                : 'bg-purple-500 hover:bg-purple-600 text-white'
-              : isDarkMode
-              ? 'bg-gray-700 hover:bg-gray-600 text-white'
-              : 'bg-gray-400 hover:bg-gray-500 text-white'
+              ? 'bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white' 
+              : 'bg-white/30 hover:bg-white/40 text-white'
           }`}
           title={user?.email || 'Menu'}
         >
           {user ? (
-            <span className="text-lg sm:text-xl font-bold">
+            <span className="text-sm sm:text-base md:text-lg font-bold">
               {user.email ? user.email[0].toUpperCase() : 'U'}
             </span>
           ) : (
-            <span className="text-lg sm:text-xl">☰</span>
+            <span className="text-base sm:text-lg">☰</span>
           )}
         </button>
 
         {isOpen && (
           <div
-            className={`absolute right-0 mt-2 w-56 rounded-lg shadow-xl z-50 transition-all duration-200 animate-in fade-in max-h-96 overflow-y-auto ${
+            className={`absolute right-0 mt-2 w-56 sm:w-64 rounded-xl shadow-2xl z-50 transition-all duration-200 animate-in fade-in max-h-96 overflow-y-auto backdrop-blur-md border border-white/30 ${
               isDarkMode
-                ? 'bg-gray-800 border border-gray-700'
-                : 'bg-white border border-gray-200'
+                ? 'bg-gray-900/85'
+                : 'bg-white/85'
             }`}
           >
             {/* Header - Only shown for logged in users */}
             {user && (
               <div
-                className={`px-4 py-3 border-b ${
-                  isDarkMode ? 'border-gray-700' : 'border-gray-200'
-                }`}
+                className={`px-4 py-3 border-b border-white/10 backdrop-blur-md`}
               >
-                <p className={`text-sm font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                <p className={`text-xs sm:text-sm font-semibold text-white truncate`}>
                   {user.email}
                 </p>
               </div>
@@ -93,11 +91,7 @@ const UserMenu: React.FC = () => {
                 setShowLocation(true);
                 setIsOpen(false);
               }}
-              className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-                isDarkMode
-                  ? 'hover:bg-gray-700 text-gray-200 border-b border-gray-700'
-                  : 'hover:bg-gray-100 text-gray-900 border-b border-gray-200'
-              }`}
+              className={`w-full text-left px-4 py-3 sm:py-2.5 text-xs sm:text-sm transition-all duration-200 hover:bg-white/10 text-gray-100 border-b border-white/10 backdrop-blur-md`}
             >
               📍 My Location ({location.lat.toFixed(2)}, {location.lng.toFixed(2)})
             </button>
@@ -109,11 +103,7 @@ const UserMenu: React.FC = () => {
                   setShowMyEvents(true);
                   setIsOpen(false);
                 }}
-                className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-                  isDarkMode
-                    ? 'hover:bg-gray-700 text-gray-200'
-                    : 'hover:bg-gray-100 text-gray-900'
-                }`}
+                className={`w-full text-left px-4 py-3 sm:py-2.5 text-xs sm:text-sm transition-all duration-200 hover:bg-white/10 text-gray-100 border-b border-white/10 backdrop-blur-md`}
               >
                 📋 My Events
               </button>
@@ -125,11 +115,7 @@ const UserMenu: React.FC = () => {
                 setShowPreferences(true);
                 setIsOpen(false);
               }}
-              className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-                isDarkMode
-                  ? 'hover:bg-gray-700 text-gray-200'
-                  : 'hover:bg-gray-100 text-gray-900'
-              }`}
+              className={`w-full text-left px-4 py-3 sm:py-2.5 text-xs sm:text-sm transition-all duration-200 hover:bg-white/10 text-gray-100 border-b border-white/10 backdrop-blur-md`}
             >
               ⚙️ Preferences
             </button>
@@ -140,11 +126,7 @@ const UserMenu: React.FC = () => {
                 setShowSettings(true);
                 setIsOpen(false);
               }}
-              className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-                isDarkMode
-                  ? 'hover:bg-gray-700 text-gray-200'
-                  : 'hover:bg-gray-100 text-gray-900'
-              }`}
+              className={`w-full text-left px-4 py-3 sm:py-2.5 text-xs sm:text-sm transition-all duration-200 hover:bg-white/10 text-gray-100 border-b border-white/10 backdrop-blur-md`}
             >
               🎨 Settings
             </button>
@@ -153,11 +135,7 @@ const UserMenu: React.FC = () => {
             {user && (
               <button
                 onClick={handleLogout}
-                className={`w-full text-left px-4 py-2 text-sm transition-colors border-t ${
-                  isDarkMode
-                    ? 'border-gray-700 hover:bg-gray-700 text-red-400'
-                    : 'border-gray-200 hover:bg-gray-100 text-red-600'
-                }`}
+                className={`w-full text-left px-4 py-3 sm:py-2.5 text-xs sm:text-sm transition-all duration-200 border-t border-white/10 hover:bg-red-500/20 text-red-400 backdrop-blur-md`}
               >
                 🚪 Logout
               </button>
@@ -168,7 +146,7 @@ const UserMenu: React.FC = () => {
 
       <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
       <PreferencesModal isOpen={showPreferences} onClose={() => setShowPreferences(false)} />
-      <MyEventsModal isOpen={showMyEvents} onClose={() => setShowMyEvents(false)} />
+      <MyEventsModal isOpen={showMyEvents} onClose={() => setShowMyEvents(false)} onEventUpdated={onEventUpdated} />
       <LocationModal isOpen={showLocation} onClose={() => setShowLocation(false)} />
     </>
   );

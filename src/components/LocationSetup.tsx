@@ -76,15 +76,19 @@ const LocationSetup: React.FC<LocationSetupProps> = ({ onComplete }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 transition-all duration-300 ease-out">
+    <div
+      className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 transition-all duration-300 ease-out`}
+      onClick={onComplete}
+      style={{ animation: 'fadeIn 0.5s ease-out' }}
+    >
       <div
-        className={`relative rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto transition-all duration-500 ease-out transform my-auto ${
-          isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
+        className={`relative rounded-2xl shadow-2xl w-full max-w-md transition-all duration-500 ease-out transform overflow-y-auto max-h-[90vh] my-auto backdrop-blur-md border border-white/30 ${
+          isDarkMode ? 'bg-gray-800/90 text-white' : 'bg-white/90 text-gray-900'
         }`}
         onClick={(e) => e.stopPropagation()}
         style={{ animation: 'fadeIn 0.5s ease-out' }}
       >
-        <div className={`p-4 sm:p-6 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+        <div className={`p-4 sm:p-6 border-b sticky top-0 backdrop-blur-sm ${isDarkMode ? 'border-gray-700 bg-gray-800/85' : 'border-gray-200 bg-white/85'}`}>
           <h2 className="text-xl sm:text-2xl font-bold">🗺️ Welcome to Local Vibe</h2>
           <p className={`text-sm mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
             Let's find events near you! Please set your location to get started.
@@ -184,10 +188,29 @@ const LocationSetup: React.FC<LocationSetupProps> = ({ onComplete }) => {
           </div>
         </div>
 
-        <div className={`p-4 sm:p-6 border-t sticky bottom-0 ${isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
-          <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-600'} mb-3 text-center`}>
-            You can change your location anytime from the menu
-          </p>
+        <div className={`p-4 sm:p-6 border-t sticky bottom-0 backdrop-blur-sm ${isDarkMode ? 'border-gray-700 bg-gray-800/85' : 'border-gray-200 bg-white/85'}`}>
+          <div className="flex gap-2">
+            <button
+              onClick={onComplete}
+              className={`flex-1 py-2 rounded-lg font-semibold transition-colors ${
+                isDarkMode
+                  ? 'bg-gray-700 hover:bg-gray-600 text-white'
+                  : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+              }`}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={onComplete}
+              className={`flex-1 py-2 rounded-lg font-semibold transition-colors ${
+                isDarkMode
+                  ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                  : 'bg-purple-500 hover:bg-purple-600 text-white'
+              }`}
+            >
+              Continue
+            </button>
+          </div>
         </div>
       </div>
     </div>

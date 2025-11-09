@@ -14,6 +14,8 @@ import AddEventModal from './src/components/AddEventModal';
 import MainContent from './src/components/MainContent';
 import AddEventButton from './src/components/AddEventButton';
 import ChatbotSidePanel from './src/components/ChatbotSidePanel';
+import LocationInfoModal from './src/components/LocationInfoModal';
+import Login from './src/pages/Login';
 import { useEventChatbot } from './src/hooks/useEventChatbot';
 
 const App: React.FC = () => {
@@ -22,6 +24,8 @@ const App: React.FC = () => {
   const [isLoadingEvents, setIsLoadingEvents] = useState<boolean>(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [isChatbotOpen, setIsChatbotOpen] = useState<boolean>(false);
+  const [showLoginModal, setShowLoginModal] = useState<boolean>(false);
+  const [showLocationInfo, setShowLocationInfo] = useState<boolean>(false);
   const [chatbotSuggestedEvents, setChatbotSuggestedEvents] = useState<Event[]>([]);
   const [isChatbotFilterActive, setIsChatbotFilterActive] = useState<boolean>(false);
   const [filters, setFilters] = useState<Filters>({
@@ -112,15 +116,30 @@ const App: React.FC = () => {
       return chatbotSuggestedEvents;
     }
 
-    // Otherwise, apply regular filters
     console.log('[Filter] Starting filter with preferences:', preferences);
+    console.log('[Filter] Current filters:', { priceFilter: filters.price, dateFilter: filters.date, search: filters.search });
+    console.log('[Filter] Available events:', events.length, 'with isFree:', events.map(e => ({ title: e.title, isFree: e.isFree })));
+    
+    if (filters.date === DateFilter.Today) {
+      const today = new Date();
+      console.log(`[Today Filter] Today's date is: ${today.toDateString()} (${today.toISOString()})`);
+      console.log(`[Today Filter] Events in database:`, events.map(e => ({ title: e.title, date: new Date(e.date).toDateString() })));
+    }
+    
+    
     const result = events.filter(event => {
       const searchMatch = event.title.toLowerCase().includes(filters.search.toLowerCase()) ||
                           event.description.toLowerCase().includes(filters.search.toLowerCase());
 
-      const priceMatch = filters.price === PriceFilter.All ||
-                         (filters.price === PriceFilter.Free && event.isFree) ||
-                         (filters.price === PriceFilter.Paid && !event.isFree);
+      // Price filter logic
+      let priceMatch = false;
+      if (filters.price === 'all' || filters.price === PriceFilter.All) {
+        priceMatch = true;
+      } else if (filters.price === 'free' || filters.price === PriceFilter.Free) {
+        priceMatch = event.isFree === true;
+      } else if (filters.price === 'paid' || filters.price === PriceFilter.Paid) {
+        priceMatch = event.isFree === false;
+      }
 
       // Check genre preferences (if preferences exist)
       const genreMatch = preferences.genrePreferences.length === 0 || preferences.genrePreferences.includes(event.category);
@@ -134,10 +153,19 @@ const App: React.FC = () => {
       let dateMatch = true;
 
       if (filters.date !== DateFilter.All) {
-        const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
-        const endOfWeek = new Date(now.setDate(now.getDate() - now.getDay() + 6));
+        // Create a fresh date for calculating week boundaries (don't mutate 'now')
+        const weekCalc = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startOfWeek = new Date(weekCalc.setDate(weekCalc.getDate() - weekCalc.getDay()));
+        const endOfWeek = new Date(new Date(startOfWeek).setDate(startOfWeek.getDate() + 6));
         
         switch (filters.date) {
+            case DateFilter.Today:
+                // Compare only the date part (ignore time)
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const eventDay = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+                console.log(`[Today Filter] Today: ${today.toDateString()}, Event: ${eventDay.toDateString()}, Match: ${today.getTime() === eventDay.getTime()}`);
+                dateMatch = today.getTime() === eventDay.getTime();
+                break;
             case DateFilter.ThisWeek:
                 dateMatch = eventDate >= startOfWeek && eventDate <= endOfWeek;
                 break;
@@ -157,7 +185,15 @@ const App: React.FC = () => {
       }
 
       const shouldInclude = searchMatch && priceMatch && dateMatch && genreMatch && distanceMatch;
-      console.log(`Event "${event.title}": search=${searchMatch}, price=${priceMatch}, date=${dateMatch}, genre=${genreMatch} (${event.category}), distance=${distanceMatch} (${eventDistance.toFixed(2)}km / ${preferences.maxDistance}km), included=${shouldInclude}`);
+      
+      // Debug logging for Today filter
+      if (filters.date === DateFilter.Today) {
+        console.log(`[Today] Event "${event.title}" (${eventDate.toDateString()}): dateMatch=${dateMatch}, priceMatch=${priceMatch}, searchMatch=${searchMatch}, genreMatch=${genreMatch}, distanceMatch=${distanceMatch}, INCLUDED=${shouldInclude}`);
+      }
+      
+      if (shouldInclude || !priceMatch) {
+        console.log(`Event "${event.title}": search=${searchMatch}, price=${priceMatch} (isFree=${event.isFree}, filter=${filters.price}), date=${dateMatch}, genre=${genreMatch} (${event.category}), distance=${distanceMatch} (${eventDistance.toFixed(2)}km / ${preferences.maxDistance}km), included=${shouldInclude}`);
+      }
       return shouldInclude;
     });
     
@@ -175,6 +211,38 @@ const App: React.FC = () => {
     setIsChatbotFilterActive(false);
   }, []);
   
+  const handleEventClick = useCallback((event: Event) => {
+    setSelectedEvent(event);
+  }, []);
+
+  const handleRefreshEvents = useCallback(async () => {
+    if (!isLocationSet) {
+      return;
+    }
+    
+    setIsLoadingEvents(true);
+    try {
+      console.log('Refreshing events from Firestore...');
+      const firestoreEvents = await fetchEventsFromFirestore();
+      console.log(`Refreshed: Loaded ${firestoreEvents.length} events`);
+      
+      // Calculate distance for each event
+      const eventsWithDistance = firestoreEvents.map(event => {
+        const dist = calculateDistance(location.lat, location.lng, event.position.lat, event.position.lng);
+        return {
+          ...event,
+          distance: dist
+        };
+      });
+      
+      setEvents(eventsWithDistance);
+    } catch (error) {
+      console.error('Error refreshing events:', error);
+    } finally {
+      setIsLoadingEvents(false);
+    }
+  }, [isLocationSet, location, calculateDistance]);
+
   const handleAddEvent = (newEventData: Omit<Event, 'id' | 'imageUrl'>) => {
     const newEvent: Event = {
         ...newEventData,
@@ -182,30 +250,15 @@ const App: React.FC = () => {
         imageUrl: `https://picsum.photos/seed/${newEventData.title.split(' ')[0] || 'event'}/400/300`,
     };
     setEvents(prev => [...prev, newEvent]);
+    
+    // Refresh events from Firestore to ensure new event is displayed
+    handleRefreshEvents();
   };
-  
-  const handleEventClick = useCallback((event: Event) => {
-    setSelectedEvent(event);
-  }, []);
-
-  const handleRefreshEvents = useCallback(async () => {
-    setIsLoadingEvents(true);
-    try {
-      console.log('Refreshing events from Firestore...');
-      const firestoreEvents = await fetchEventsFromFirestore();
-      console.log(`Refreshed: Loaded ${firestoreEvents.length} events`);
-      setEvents(firestoreEvents);
-    } catch (error) {
-      console.error('Error refreshing events:', error);
-    } finally {
-      setIsLoadingEvents(false);
-    }
-  }, []);
 
   const handleLogout = async () => {
     try {
       await logout();
-      navigate('/login');
+      // Stay on the page after logout - user will see the app without the ability to create events
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -218,7 +271,7 @@ const App: React.FC = () => {
         <LocationSetup onComplete={() => setLocationSet(true)} />
       )}
 
-      <FilterBar filters={filters} onFilterChange={handleFilterChange} eventCount={filteredEvents.length} user={user} onLogout={handleLogout} />
+      <FilterBar filters={filters} onFilterChange={handleFilterChange} eventCount={filteredEvents.length} user={user} onLogout={handleLogout} onEventUpdated={handleRefreshEvents} onOpenLogin={() => setShowLoginModal(true)} />
 
       <MainContent
         isLoadingEvents={isLoadingEvents}
@@ -227,6 +280,7 @@ const App: React.FC = () => {
         filteredEvents={filteredEvents}
         selectedEvent={selectedEvent}
         onEventClick={handleEventClick}
+        onLocationClick={() => setShowLocationInfo(true)}
       />
 
       {selectedEvent && <EventCard event={selectedEvent} onClose={() => setSelectedEvent(null)} />}
@@ -242,7 +296,7 @@ const App: React.FC = () => {
       {/* Chatbot Button */}
       <button
         onClick={() => setIsChatbotOpen(true)}
-        className="fixed bottom-4 sm:bottom-6 left-4 sm:left-6 bg-purple-600 hover:bg-purple-700 text-white rounded-full p-3 sm:p-4 shadow-lg transition-all duration-200 ease-out hover:scale-125 hover:shadow-xl z-30 text-lg sm:text-xl transform active:scale-95"
+        className="fixed bottom-4 sm:bottom-6 left-4 sm:left-6 bg-gradient-to-r from-gray-600/70 to-gray-500/70 hover:from-gray-700/80 hover:to-gray-600/80 text-white rounded-full p-3 sm:p-4 shadow-lg transition-all duration-200 ease-out hover:scale-125 hover:shadow-xl z-30 text-lg sm:text-xl transform active:scale-95 backdrop-blur-md border border-gray-400/50 hover:shadow-gray-500/30"
         aria-label="Open chat"
       >
         💬
@@ -258,6 +312,24 @@ const App: React.FC = () => {
         isChatbotFilterActive={isChatbotFilterActive}
         onClearFilter={handleClearChatbotFilter}
       />
+
+      {/* Login Modal */}
+      {showLoginModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
+          <div className="relative bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setShowLoginModal(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl font-bold"
+            >
+              ✕
+            </button>
+            <Login onClose={() => setShowLoginModal(false)} />
+          </div>
+        </div>
+      )}
+
+      {/* Location Info Modal */}
+      <LocationInfoModal isOpen={showLocationInfo} onClose={() => setShowLocationInfo(false)} />
     </div>
   );
 };

@@ -39,13 +39,13 @@ const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onClose }) 
       style={{ animation: 'fadeIn 0.5s ease-out' }}
     >
       <div
-        className={`relative rounded-2xl shadow-2xl w-full max-w-md transition-all duration-500 ease-out transform overflow-y-auto max-h-[90vh] my-auto ${
-          isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
+        className={`relative rounded-2xl shadow-2xl w-full max-w-md transition-all duration-500 ease-out transform overflow-y-auto max-h-[90vh] my-auto backdrop-blur-md border border-white/30 ${
+          isDarkMode ? 'bg-gray-800/90 text-white' : 'bg-white/90 text-gray-900'
         }`}
         onClick={(e) => e.stopPropagation()}
         style={{ animation: 'fadeIn 0.5s ease-out' }}
       >
-        <div className={`p-4 sm:p-6 border-b sticky top-0 ${isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
+        <div className={`p-4 sm:p-6 border-b sticky top-0 backdrop-blur-sm ${isDarkMode ? 'border-gray-700 bg-gray-800/85' : 'border-gray-200 bg-white/85'}`}>
           <div className="flex justify-between items-center">
             <h2 className="text-xl sm:text-2xl font-bold">Preferences</h2>
             <button
@@ -118,7 +118,7 @@ const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onClose }) 
           </div>
         </div>
 
-        <div className={`p-4 sm:p-6 border-t sticky bottom-0 ${isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
+        <div className={`p-4 sm:p-6 border-t sticky bottom-0 backdrop-blur-sm ${isDarkMode ? 'border-gray-700 bg-gray-800/85' : 'border-gray-200 bg-white/85'}`}>
           <div className="flex gap-2">
             <button
               onClick={onClose}

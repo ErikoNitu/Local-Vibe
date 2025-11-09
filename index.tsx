@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import AppLayout from './src/pages/AppLayout';
-import { ProtectedRoute } from './src/components/ProtectedRoute';
 import App from './App';
 import Login from './src/pages/Login'
 import { ThemeProvider } from './src/contexts/ThemeContext';
@@ -22,11 +21,11 @@ root.render(
         <LocationProvider>
           <BrowserRouter>
             <Routes>
-              {/* Public routes - will add Login and Register here */}
+              {/* Public routes */}
               <Route path="/login" element={<Login/>} />
               {/* <Route path="/register" element={<div>Register Page - Coming Soon</div>} /> */}
               
-              {/* Protected routes */}
+              {/* App route - accessible to all, login optional */}
               <Route
                 path="/"
                 element={<AppLayout />}

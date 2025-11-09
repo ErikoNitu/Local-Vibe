@@ -10,7 +10,11 @@ import {auth, googleProvider,signInWithPopup, //signOut,
 // let auth: any = null;
 // let googleProvider: any = null;
 
-export default function LoginPage() {
+interface LoginProps {
+  onClose?: () => void;
+}
+
+export default function LoginPage({ onClose }: LoginProps) {
   const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -26,7 +30,11 @@ export default function LoginPage() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       setUser(result.user);
-      navigate('/');
+      if (onClose) {
+        onClose();
+      } else {
+        navigate('/');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to sign in with Google');
     } finally {
@@ -47,11 +55,19 @@ export default function LoginPage() {
       if (isLogin) {
         const result = await signInWithEmailAndPassword(auth, email, password);
         setUser(result.user);
-        navigate('/');
+        if (onClose) {
+          onClose();
+        } else {
+          navigate('/');
+        }
       } else {
         const result = await createUserWithEmailAndPassword(auth, email, password);
         setUser(result.user);
-        navigate('/');
+        if (onClose) {
+          onClose();
+        } else {
+          navigate('/');
+        }
       }
     } catch (err: any) {
       let errorMessage = 'Authentication failed';
@@ -108,13 +124,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4" style={{ animation: 'fadeIn 0.7s ease-out' }}>
-      <button
-        onClick={() => navigate('/')}
-        className="absolute top-4 left-4 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors hover:scale-105"
-      >
-        ← Back
-      </button>
-
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md transition-all duration-500 ease-out" style={{ animation: 'slideInUp 0.7s cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">

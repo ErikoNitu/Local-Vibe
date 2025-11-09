@@ -49,7 +49,7 @@ const ChatbotSidePanel: React.FC<ChatbotSidePanelProps> = ({
         aria-hidden={!isOpen}
       />
       <div
-        className={`fixed top-0 left-0 h-full w-full max-w-md sm:max-w-sm md:max-w-md lg:max-w-lg bg-gray-800 text-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 h-full w-full max-w-md sm:max-w-sm md:max-w-md lg:max-w-lg bg-gray-800/40 backdrop-blur-md border-r border-white/20 text-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         role="dialog"
@@ -59,7 +59,7 @@ const ChatbotSidePanel: React.FC<ChatbotSidePanelProps> = ({
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex justify-between items-center p-3 sm:p-4 border-b border-gray-700">
+          <div className="flex justify-between items-center p-3 sm:p-4 border-b border-white/20 bg-gray-800/30 backdrop-blur-md">
             <h2 id="chatbot-title" className="text-lg sm:text-xl font-bold">
               AI Assistant
             </h2>
@@ -73,7 +73,7 @@ const ChatbotSidePanel: React.FC<ChatbotSidePanelProps> = ({
           </div>
 
           {/* Messages */}
-          <div className="flex-1 p-2 sm:p-4 overflow-y-auto space-y-3 sm:space-y-4 bg-gray-900">
+          <div className="flex-1 p-2 sm:p-4 overflow-y-auto space-y-3 sm:space-y-4 bg-gray-900/40 backdrop-blur-md">
             {messages.map((msg, index) => (
               <div
                 key={index}
@@ -137,7 +137,7 @@ const ChatbotSidePanel: React.FC<ChatbotSidePanelProps> = ({
           </div>
 
           {/* Input Form */}
-          <div className="p-2 sm:p-4 border-t border-gray-700">
+          <div className="p-2 sm:p-4 border-t border-white/20 bg-gray-800/30 backdrop-blur-md">
             <form onSubmit={handleSubmit} className="flex gap-1 sm:gap-2">
               <input
                 type="text"
@@ -149,7 +149,7 @@ const ChatbotSidePanel: React.FC<ChatbotSidePanelProps> = ({
               />
               <button
                 type="submit"
-                className="bg-purple-600 hover:bg-purple-700 text-white font-bold p-2 sm:p-3 rounded-lg transition-colors disabled:opacity-50"
+                className="bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white font-bold p-2 sm:p-3 rounded-lg transition-all duration-300 disabled:opacity-50 backdrop-blur-md border border-purple-400/50 shadow-md hover:shadow-lg hover:shadow-purple-500/30"
                 disabled={!input.trim()}
                 aria-label="Send message"
               >

@@ -16,7 +16,7 @@ const AddEventButton: React.FC<AddEventButtonProps> = ({ onClick }) => {
   return (
     <button
       onClick={onClick}
-      className="fixed bottom-6 right-6 z-20 bg-purple-600 hover:bg-purple-700 text-white rounded-full p-4 shadow-lg transform hover:scale-105 transition-transform"
+      className="fixed bottom-6 right-6 z-20 bg-gradient-to-r from-gray-600/30 to-gray-500/30 hover:from-gray-700/40 hover:to-gray-600/40 text-white rounded-full p-4 shadow-lg hover:shadow-xl hover:shadow-gray-400/50 transform hover:scale-125 transition-all duration-200 backdrop-blur-xl border-2 border-white/50"
       aria-label="Add Event"
     >
       <PlusIcon className="w-8 h-8" />

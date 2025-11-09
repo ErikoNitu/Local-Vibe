@@ -24,7 +24,9 @@ export const useEventChatbot = (allEvents: Event[], onSuggestedEventsChange?: (e
     setMessages(prev => [...prev, { role: 'loading', content: '' }]);
 
     try {
-      const matchingEventIds = await parseUserInputWithGemini(userMessage, allEvents);
+      const result = await parseUserInputWithGemini(userMessage, allEvents);
+      const matchingEventIds = result.eventIds;
+      const aiMessage = result.aiMessage;
       
       // Filter events based on returned IDs
       const suggestedEvents = allEvents.filter(event => 
@@ -36,27 +38,22 @@ export const useEventChatbot = (allEvents: Event[], onSuggestedEventsChange?: (e
         onSuggestedEventsChange(suggestedEvents);
       }
 
-      // Notify that chatbot filter is active
+      // Notify that chatbot filter is active (only if events are found)
       if (onFilterActiveChange) {
         onFilterActiveChange(suggestedEvents.length > 0);
       }
 
-      // Set the search filter to "chatbot recommended"
+      // Set the search filter to "chatbot recommended" only if events found
       if (onSetSearchFilter && suggestedEvents.length > 0) {
         onSetSearchFilter('chatbot recommended');
       }
-
-      // Create a user-friendly message about the results
-      const resultMessage = suggestedEvents.length > 0
-        ? `Found ${suggestedEvents.length} event(s) matching your interest! 📍`
-        : 'No events found matching your criteria. Try a different search! 🔍';
 
       // Replace loading message with result
       setMessages(prev => {
         const updated = [...prev];
         updated[updated.length - 1] = { 
           role: 'model', 
-          content: resultMessage,
+          content: aiMessage,
           suggestedEvents: suggestedEvents
         };
         return updated;

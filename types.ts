@@ -23,6 +23,7 @@ export enum PriceFilter {
 
 export enum DateFilter {
   All = 'all',
+  Today = 'today',
   ThisWeek = 'this_week',
   NextWeek = 'next_week',
   ThisWeekend = 'this_weekend',

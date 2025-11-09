@@ -15,7 +15,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [date, setDate] = useState('');
-  const [category, setCategory] = useState('Muzică');
+  const [category, setCategory] = useState('Music');
   const [organizer, setOrganizer] = useState('');
   const [isFree, setIsFree] = useState(false);
   const [location, setLocation] = useState('');
@@ -40,7 +40,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
 
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`,
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=8`,
         {
           headers: {
             'Accept': 'application/json',
@@ -52,9 +52,11 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
       }
       const data = await response.json();
       setLocationSuggestions(data);
-      setShowSuggestions(true);
+      setShowSuggestions(data.length > 0);
     } catch (error) {
       console.error('Error searching locations:', error);
+      setLocationSuggestions([]);
+      setShowSuggestions(false);
     }
   };
 
@@ -89,12 +91,12 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !description || !date || !organizer || !location || lat === null || lng === null) {
-        alert('Te rog completează toate câmpurile obligatorii, inclusiv locația.');
+        alert('Please fill in all required fields, including location.');
         return;
     }
 
     if (!user) {
-      alert('Te rog autentifică-te pentru a adăuga un eveniment.');
+      alert('Please log in to add an event.');
       return;
     }
 
@@ -117,10 +119,10 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
 
       await addEventToFirestore(eventData, user.uid, user.displayName);
       
-      alert('Evenimentul a fost adăugat cu succes!');
+      alert('Event added successfully!');
     } catch (error) {
       console.error('Failed to add event:', error);
-      alert('Eroare la adăugarea evenimentului. Te rog încearcă din nou.');
+      alert('Error adding event. Please try again.');
       setIsSubmitting(false);
       return;
     }
@@ -144,7 +146,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
     setDescription('');
     setIsSubmitting(false);
     setDate('');
-    setCategory('Muzică');
+    setCategory('Music');
     setOrganizer('');
     setIsFree(false);
     setLocation('');
@@ -161,12 +163,12 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
       onClick={onClose}
     >
       <div
-        className="relative bg-gray-800 text-white rounded-2xl shadow-2xl w-full max-w-md sm:max-w-lg transition-all duration-300 ease-out transform animate-in fade-in zoom-in"
+        className="relative bg-gray-800/60 backdrop-blur-lg border border-white/30 text-white rounded-2xl shadow-2xl w-full max-w-md sm:max-w-lg transition-all duration-300 ease-out transform animate-in fade-in zoom-in"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-4 sm:p-6">
           <div className="flex justify-between items-center mb-3 sm:mb-4">
-            <h2 className="text-xl sm:text-2xl font-bold">Adaugă Evenimentul Tău</h2>
+            <h2 className="text-xl sm:text-2xl font-bold">Add Your Event</h2>
             <button
               onClick={onClose}
               className="bg-gray-700/50 rounded-full p-2 text-white hover:bg-gray-700 transition-all duration-200 hover:scale-110 hover:rotate-90"
@@ -177,50 +179,62 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
-            <input type="text" placeholder="Titlu Eveniment" value={title} onChange={e => setTitle(e.target.value)} className="w-full p-2 sm:p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base" required />
-            <textarea placeholder="Descriere" value={description} onChange={e => setDescription(e.target.value)} className="w-full p-2 sm:p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base" rows={3} required></textarea>
+            <input type="text" placeholder="Event Title" value={title} onChange={e => setTitle(e.target.value)} className="w-full p-2 sm:p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base" required />
+            <textarea placeholder="Description" value={description} onChange={e => setDescription(e.target.value)} className="w-full p-2 sm:p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base" rows={3} required></textarea>
             <input type="datetime-local" value={date} onChange={e => setDate(e.target.value)} className="w-full p-2 sm:p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-400 text-sm sm:text-base" required />
-            <input type="text" placeholder="Nume Organizator" value={organizer} onChange={e => setOrganizer(e.target.value)} className="w-full p-2 sm:p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base" required />
+            <input type="text" placeholder="Organizer Name" value={organizer} onChange={e => setOrganizer(e.target.value)} className="w-full p-2 sm:p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base" required />
             
             {/* Location Input with Autocomplete */}
             <div className="relative">
               <input 
                 type="text" 
-                placeholder="Cauta locație..." 
+                placeholder="Search location..." 
                 value={location} 
                 onChange={e => handleLocationSearch(e.target.value)}
-                onFocus={() => location.length >= 2 && setShowSuggestions(true)}
+                onFocus={() => {
+                  if (location.length >= 2) {
+                    setShowSuggestions(true);
+                  }
+                }}
                 className="w-full p-2 sm:p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base" 
                 required 
               />
               {lat && lng && (
                 <div className="text-xs text-green-400 mt-1">
-                  ✓ Locație selectată: {lat.toFixed(4)}, {lng.toFixed(4)}
+                  ✓ Location selected: {lat.toFixed(4)}, {lng.toFixed(4)}
                 </div>
               )}
               {showSuggestions && locationSuggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-gray-700 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-gray-700 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto border border-purple-500/30">
                   {locationSuggestions.map((suggestion, idx) => (
                     <button
                       key={idx}
                       type="button"
                       onClick={() => handleSelectLocation(suggestion)}
-                      className="w-full text-left p-2 sm:p-3 hover:bg-gray-600 text-xs sm:text-sm text-gray-200 border-b border-gray-600 last:border-b-0 transition-colors"
+                      className="w-full text-left p-2 sm:p-3 hover:bg-gray-600 text-xs sm:text-sm text-gray-200 border-b border-gray-600 last:border-b-0 transition-colors flex items-start gap-2"
                     >
-                      📍 {suggestion.display_name}
+                      <span className="mt-0.5">📍</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="truncate font-medium">{suggestion.display_name}</div>
+                      </div>
                     </button>
                   ))}
+                </div>
+              )}
+              {showSuggestions && locationSuggestions.length === 0 && location.length >= 2 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-gray-700 rounded-lg shadow-lg z-10 p-3 text-xs sm:text-sm text-gray-400 border border-gray-600">
+                  No locations found. Try a different search.
                 </div>
               )}
             </div>
             
             <select value={category} onChange={e => setCategory(e.target.value)} className="w-full p-2 sm:p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base" required>
-                <option>Muzică</option>
-                <option>Artă</option>
-                <option>Sport</option>
-                <option>Târg</option>
-                <option>Teatru</option>
-                <option>Educație</option>
+                <option>Music</option>
+                <option>Art</option>
+                <option>Sports</option>
+                <option>Fair</option>
+                <option>Theater</option>
+                <option>Education</option>
             </select>
 
             {/* Photo Upload Section */}

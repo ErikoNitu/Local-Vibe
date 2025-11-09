@@ -14,7 +14,7 @@ const PreferencesContext = createContext<PreferencesContextType | undefined>(und
 
 const DEFAULT_PREFERENCES: UserPreferences = {
   maxDistance: 50, // 50km default
-  genrePreferences: ['Muzică', 'Artă', 'Sport', 'Târg', 'Teatru', 'Educație'], // All genres by default
+  genrePreferences: ['Music', 'Art', 'Sports', 'Fair', 'Theater', 'Education'], // All genres by default
 };
 
 export const PreferencesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

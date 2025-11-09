@@ -10,6 +10,7 @@ interface MainContentProps {
   filteredEvents: Event[];
   selectedEvent: Event | null;
   onEventClick: (event: Event) => void;
+  onLocationClick?: () => void;
 }
 
 const MainContent: React.FC<MainContentProps> = ({
@@ -19,6 +20,7 @@ const MainContent: React.FC<MainContentProps> = ({
   filteredEvents,
   selectedEvent,
   onEventClick,
+  onLocationClick,
 }) => {
   return (
     <main className="relative w-full h-full">
@@ -29,6 +31,7 @@ const MainContent: React.FC<MainContentProps> = ({
           events={filteredEvents}
           selectedEvent={selectedEvent}
           onEventClick={onEventClick}
+          onLocationClick={onLocationClick}
         />
       )}
     </main>
