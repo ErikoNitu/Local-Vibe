@@ -67,7 +67,7 @@ const FilterBar: React.FC<FilterBarProps> = ({ filters, onFilterChange, eventCou
 
             {/* Mobile Dropdown Menu */}
             {isFilterMenuOpen && (
-              <div className="absolute top-full right-0 mt-2 bg-gray-800/95 backdrop-blur-md border border-white/30 rounded-xl shadow-xl z-20 w-48 p-3 space-y-3">
+              <div className="absolute top-full right-0 mt-2 bg-gray-800/60 backdrop-blur-lg border border-white/30 rounded-xl shadow-xl z-20 w-48 p-3 space-y-3">
                 {/* Price Filter */}
                 <div>
                   <label className="block text-xs sm:text-xs font-semibold text-gray-300 mb-2">Price</label>

@@ -68,10 +68,10 @@ const UserMenu: React.FC<UserMenuProps> = ({ onEventUpdated }) => {
 
         {isOpen && (
           <div
-            className={`absolute right-0 mt-2 w-56 sm:w-64 rounded-xl shadow-2xl z-50 transition-all duration-200 animate-in fade-in max-h-96 overflow-y-auto backdrop-blur-md border border-white/30 ${
+            className={`absolute right-0 mt-2 w-56 sm:w-64 rounded-xl shadow-2xl z-50 transition-all duration-200 animate-in fade-in max-h-96 overflow-y-auto backdrop-blur-lg border border-white/30 ${
               isDarkMode
-                ? 'bg-gray-900/85'
-                : 'bg-white/85'
+                ? 'bg-gray-800/60'
+                : 'bg-white/60'
             }`}
           >
             {/* Header - Only shown for logged in users */}
@@ -93,7 +93,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ onEventUpdated }) => {
               }}
               className={`w-full text-left px-4 py-3 sm:py-2.5 text-xs sm:text-sm transition-all duration-200 hover:bg-white/10 text-gray-100 border-b border-white/10 backdrop-blur-md`}
             >
-              📍 My Location ({location.lat.toFixed(2)}, {location.lng.toFixed(2)})
+              📍 My Location
             </button>
 
             {/* My Events - Only for logged users */}

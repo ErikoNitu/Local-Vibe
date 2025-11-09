@@ -90,11 +90,11 @@ const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onClose }) 
           {/* Genre Preferences */}
           <div>
             <h3 className="text-sm sm:text-base font-semibold mb-3">🎭 Event Genres</h3>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {AVAILABLE_GENRES.map((genre) => (
                 <label
                   key={genre}
-                  className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
+                  className={`flex items-center gap-3 p-3 sm:p-2 rounded-lg cursor-pointer transition-colors ${
                     isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
                   }`}
                 >
@@ -102,8 +102,10 @@ const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onClose }) 
                     type="checkbox"
                     checked={selectedGenres.includes(genre)}
                     onChange={() => handleToggleGenre(genre)}
-                    className="w-4 h-4 rounded accent-purple-600"
-                  />
+className="w-5 h-5 sm:w-5 sm:h-5 xs:w-4 xs:h-4 rounded accent-purple-500 flex-shrink-0 cursor-pointer appearance-none 
+             bg-gray-700 border-2 border-purple-400 checked:bg-purple-600 checked:border-purple-600 
+             transition-all active:scale-95 focus:ring-2 focus:ring-purple-400/40
+             [@media(max-width:640px)]:scale-90"                  />
                   <span className="text-sm sm:text-base">{genre}</span>
                 </label>
               ))}
