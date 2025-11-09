@@ -58,8 +58,8 @@ const FilterBar: React.FC<FilterBarProps> = ({ filters, onFilterChange, eventCou
             />
           </div>
 
-          {/* MOBILE: Filter Dropdown Menu Button */}
-          <div className="relative md:hidden flex-shrink-0">
+          {/* MOBILE/TABLET: Filter Dropdown Menu Button */}
+          <div className="relative lg:hidden flex-shrink-0">
             <button
               onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)}
               className="bg-white/30 backdrop-blur-md text-white rounded-full px-3 py-2 h-9 sm:h-9 focus:outline-none cursor-pointer text-xs sm:text-xs transition-all hover:bg-white/40 focus:ring-2 focus:ring-purple-400/50 border border-white/40 shadow-md flex items-center gap-1 whitespace-nowrap"
@@ -129,13 +129,13 @@ const FilterBar: React.FC<FilterBarProps> = ({ filters, onFilterChange, eventCou
             )}
           </div>
 
-          {/* Mobile User Menu */}
-          <div className="md:hidden flex-shrink-0">
+          {/* Mobile/Tablet User Menu */}
+          <div className="lg:hidden flex-shrink-0">
             <UserMenu onEventUpdated={onEventUpdated} />
           </div>
 
           {/* DESKTOP: Inline filters and buttons */}
-          <div className="hidden md:flex md:items-center md:gap-2 md:flex-shrink-0">
+          <div className="hidden lg:flex lg:items-center lg:gap-2 lg:flex-shrink-0">
             {/* Price Filter */}
             <div className="relative">
               <select
