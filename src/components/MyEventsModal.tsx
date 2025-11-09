@@ -48,6 +48,7 @@ const MyEventsModal: React.FC<MyEventsModalProps> = ({ isOpen, onClose, onEventU
           isFree: data.isFree,
           category: data.category,
           organizer: data.organizer,
+          phoneNumber: data.phoneNumber || '',
           position: data.position,
           imageUrl: data.imageUrl,
           photos: data.photos || [],
@@ -123,6 +124,7 @@ const MyEventsModal: React.FC<MyEventsModalProps> = ({ isOpen, onClose, onEventU
         date: editData.date,
         category: editData.category,
         organizer: editData.organizer,
+        phoneNumber: editData.phoneNumber,
         isFree: editData.isFree,
         position: editData.position,
         photos: editData.photos || [],
@@ -309,15 +311,17 @@ const MyEventsModal: React.FC<MyEventsModalProps> = ({ isOpen, onClose, onEventU
                           } border focus:outline-none focus:ring-2 focus:ring-purple-500`}
                           placeholder="Organizer"
                         />
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={editData.isFree ?? false}
-                            onChange={(e) => setEditData({ ...editData, isFree: e.target.checked })}
-                            className="h-4 w-4"
-                          />
-                          <span className="text-sm">Free Event</span>
-                        </label>
+                        <input
+                          type="tel"
+                          value={editData.phoneNumber || ''}
+                          onChange={(e) => setEditData({ ...editData, phoneNumber: e.target.value })}
+                          className={`p-2 rounded-lg text-sm ${
+                            isDarkMode
+                              ? 'bg-gray-600 border-gray-500 text-white'
+                              : 'bg-white border-gray-300 text-gray-900'
+                          } border focus:outline-none focus:ring-2 focus:ring-purple-500`}
+                          placeholder="Phone Number"
+                        />
                       </div>
 
                       {/* Location Section */}
@@ -452,8 +456,13 @@ const MyEventsModal: React.FC<MyEventsModalProps> = ({ isOpen, onClose, onEventU
                               {event.category}
                             </span>
                             <span className={`text-xs px-2 py-1 rounded ${isDarkMode ? 'bg-gray-600' : 'bg-gray-200'}`}>
-                              {new Date(event.date).toLocaleDateString('ro-RO')}
+                              {new Date(event.date).toLocaleDateString('ro-RO')} {new Date(event.date).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' })}
                             </span>
+                            {event.phoneNumber && (
+                              <span className={`text-xs px-2 py-1 rounded ${isDarkMode ? 'bg-gray-600' : 'bg-gray-200'}`}>
+                                📞 {event.phoneNumber}
+                              </span>
+                            )}
                             <span className={`text-xs px-2 py-1 rounded ${event.isFree ? 'bg-green-600/20 text-green-400' : 'bg-yellow-600/20 text-yellow-400'}`}>
                               {event.isFree ? 'Free' : 'Paid'}
                             </span>

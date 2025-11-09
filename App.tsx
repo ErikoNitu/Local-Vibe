@@ -14,6 +14,7 @@ import AddEventModal from './src/components/AddEventModal';
 import MainContent from './src/components/MainContent';
 import AddEventButton from './src/components/AddEventButton';
 import ChatbotSidePanel from './src/components/ChatbotSidePanel';
+import EventsListSidePanel from './src/components/EventsListSidePanel';
 import LocationInfoModal from './src/components/LocationInfoModal';
 import Login from './src/pages/Login';
 import { useEventChatbot } from './src/hooks/useEventChatbot';
@@ -24,6 +25,7 @@ const App: React.FC = () => {
   const [isLoadingEvents, setIsLoadingEvents] = useState<boolean>(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [isChatbotOpen, setIsChatbotOpen] = useState<boolean>(false);
+  const [isEventsListOpen, setIsEventsListOpen] = useState<boolean>(false);
   const [showLoginModal, setShowLoginModal] = useState<boolean>(false);
   const [showLocationInfo, setShowLocationInfo] = useState<boolean>(false);
   const [chatbotSuggestedEvents, setChatbotSuggestedEvents] = useState<Event[]>([]);
@@ -56,7 +58,7 @@ const App: React.FC = () => {
     return R * c;
   }, []);
   
-  const { messages, handleSendMessage } = useEventChatbot(events, setChatbotSuggestedEvents, setIsChatbotFilterActive, handleSetSearchFilter);
+  const { messages, handleSendMessage } = useEventChatbot(events, setChatbotSuggestedEvents, setIsChatbotFilterActive, handleSetSearchFilter, location);
 
   useEffect(() => {
     const loadEvents = async () => {
@@ -114,6 +116,11 @@ const App: React.FC = () => {
     // If chatbot has suggested events, show only those
     if (chatbotSuggestedEvents.length > 0) {
       return chatbotSuggestedEvents;
+    }
+
+    // If "Anytime" filter is selected with no search and price is "all", show ALL events
+    if (filters.date === DateFilter.All && filters.price === PriceFilter.All && filters.search === '') {
+      return events;
     }
 
     console.log('[Filter] Starting filter with preferences:', preferences);
@@ -292,6 +299,23 @@ const App: React.FC = () => {
         isOpen={isAddModalOpen} 
         onClose={() => setIsAddModalOpen(false)}
         onAddEvent={handleAddEvent}
+      />
+
+      {/* Events List Button - Fixed on bottom left, above chatbot */}
+      <button
+        onClick={() => setIsEventsListOpen(true)}
+        className="fixed bottom-20 sm:bottom-28 left-4 sm:left-6 bg-gradient-to-r from-gray-600/70 to-gray-500/70 hover:from-gray-700/80 hover:to-gray-600/80 text-white rounded-full p-3 sm:p-4 md:p-5 shadow-lg transition-all duration-200 ease-out hover:scale-125 hover:shadow-xl z-30 text-lg sm:text-xl md:text-2xl transform active:scale-95 backdrop-blur-md border border-gray-400/50 hover:shadow-gray-500/30 min-h-12 sm:min-h-14 md:min-h-16 min-w-12 sm:min-w-14 md:min-w-16 flex items-center justify-center touch-manipulation"
+        aria-label="Open events list"
+      >
+        📋
+      </button>
+
+      {/* Events List Panel */}
+      <EventsListSidePanel
+        isOpen={isEventsListOpen}
+        onClose={() => setIsEventsListOpen(false)}
+        events={filteredEvents}
+        onEventClick={handleEventClick}
       />
 
       {/* Chatbot Button - Fixed on bottom left */}

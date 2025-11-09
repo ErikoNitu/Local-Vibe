@@ -8,7 +8,13 @@ export interface ChatMessage {
   suggestedEvents?: Event[];
 }
 
-export const useEventChatbot = (allEvents: Event[], onSuggestedEventsChange?: (events: Event[]) => void, onFilterActiveChange?: (isActive: boolean) => void, onSetSearchFilter?: (search: string) => void) => {
+export const useEventChatbot = (
+  allEvents: Event[], 
+  onSuggestedEventsChange?: (events: Event[]) => void, 
+  onFilterActiveChange?: (isActive: boolean) => void, 
+  onSetSearchFilter?: (search: string) => void,
+  userLocation?: { lat: number; lng: number }
+) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'model',
@@ -24,7 +30,7 @@ export const useEventChatbot = (allEvents: Event[], onSuggestedEventsChange?: (e
     setMessages(prev => [...prev, { role: 'loading', content: '' }]);
 
     try {
-      const result = await parseUserInputWithGemini(userMessage, allEvents);
+      const result = await parseUserInputWithGemini(userMessage, allEvents, userLocation);
       const matchingEventIds = result.eventIds;
       const aiMessage = result.aiMessage;
       
@@ -75,7 +81,7 @@ export const useEventChatbot = (allEvents: Event[], onSuggestedEventsChange?: (e
         onFilterActiveChange(false);
       }
     }
-  }, [allEvents, onSuggestedEventsChange, onFilterActiveChange, onSetSearchFilter]);
+  }, [allEvents, onSuggestedEventsChange, onFilterActiveChange, onSetSearchFilter, userLocation]);
 
   return { messages, handleSendMessage };
 };

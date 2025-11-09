@@ -6,6 +6,7 @@ export interface Event {
   isFree: boolean;
   category: string;
   organizer: string;
+  phoneNumber?: string; // Optional phone number
   position: {
     lat: number;
     lng: number;

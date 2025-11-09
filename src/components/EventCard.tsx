@@ -76,6 +76,11 @@ const EventCard: React.FC<EventCardProps> = ({ event, onClose }) => {
     }
   };
 
+  const openGoogleMaps = () => {
+    const mapsUrl = `https://www.google.com/maps?q=${event.position.lat},${event.position.lng}`;
+    window.open(mapsUrl, '_blank');
+  };
+
   return (
     <div 
       className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-center justify-center p-2 sm:p-4 transition-all duration-500 ease-out"
@@ -155,10 +160,19 @@ const EventCard: React.FC<EventCardProps> = ({ event, onClose }) => {
           
           <div className="mt-3 sm:mt-4 border-t border-gray-700 pt-3 sm:pt-4">
              <p className="font-semibold text-purple-300 text-sm sm:text-base">{formatDate(event.date)}</p>
-             {locationAddress && (
+             {event.phoneNumber && (
                <p className="text-gray-400 text-xs sm:text-sm mt-2">
-                 📍 {locationAddress}
+                 📞 {event.phoneNumber}
                </p>
+             )}
+             {locationAddress && (
+               <button
+                 onClick={openGoogleMaps}
+                 className="text-gray-400 text-xs sm:text-sm mt-2 hover:text-purple-400 hover:underline transition-colors cursor-pointer flex items-center gap-1"
+                 title="Click to open in Google Maps"
+               >
+                 📍 {locationAddress}
+               </button>
              )}
              {loadingLocation && (
                <p className="text-gray-500 text-xs sm:text-sm mt-2">Loading location...</p>

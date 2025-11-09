@@ -291,3 +291,27 @@ input, textarea, select {
   }
 }
 
+/* Select and option styling */
+select {
+  appearance: none;
+  color-scheme: dark;
+  background-color: rgba(55, 65, 81, 0.6);
+  color: rgba(194, 199, 207, 0.25);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+select option {
+  appearance: none;
+  background-color: rgba(194, 199, 207, 0.25); /* reduced opacity from 0.6 → 0.25 */
+  color: rgba(194, 199, 207, 0.25);
+  backdrop-filter: blur(2px);
+  padding: 8px;
+}
+
+/* select option:checked {
+  background: linear-gradient(#a855f7, #a855f7);
+  background-color: #a855f7 !important;
+  color: white;
+} */
+

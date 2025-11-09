@@ -80,6 +80,7 @@ export const fetchEventsFromFirestore = async (): Promise<Event[]> => {
         isFree: data.isFree ?? false,
         category: data.category || 'Other',
         organizer: data.organizer || 'Unknown',
+        phoneNumber: data.phoneNumber || '',
         position: {
           lat: data.position?.lat || 44.43,
           lng: data.position?.lng || 26.10,

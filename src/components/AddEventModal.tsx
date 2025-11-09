@@ -17,6 +17,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
   const [date, setDate] = useState('');
   const [category, setCategory] = useState('Music');
   const [organizer, setOrganizer] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [isFree, setIsFree] = useState(false);
   const [location, setLocation] = useState('');
   const [lat, setLat] = useState<number | null>(null);
@@ -90,8 +91,8 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !description || !date || !organizer || !location || lat === null || lng === null) {
-        alert('Please fill in all required fields, including location.');
+    if (!title || !description || !date || !organizer || !location || !phoneNumber || lat === null || lng === null) {
+        alert('Please fill in all required fields, including location and phone number.');
         return;
     }
 
@@ -110,6 +111,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
         isFree,
         category,
         organizer,
+        phoneNumber,
         position: {
           lat,
           lng,
@@ -134,6 +136,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
       isFree,
       category,
       organizer,
+      phoneNumber,
       position: {
         lat,
         lng,
@@ -148,6 +151,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
     setDate('');
     setCategory('Music');
     setOrganizer('');
+    setPhoneNumber('');
     setIsFree(false);
     setLocation('');
     setLat(null);
@@ -183,6 +187,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ isOpen, onClose, onAddEve
             <textarea placeholder="Description" value={description} onChange={e => setDescription(e.target.value)} className="w-full p-2 sm:p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base" rows={3} required></textarea>
             <input type="datetime-local" value={date} onChange={e => setDate(e.target.value)} className="w-full p-2 sm:p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-400 text-sm sm:text-base" required />
             <input type="text" placeholder="Organizer Name" value={organizer} onChange={e => setOrganizer(e.target.value)} className="w-full p-2 sm:p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base" required />
+            <input type="tel" placeholder="Phone Number" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} className="w-full p-2 sm:p-3 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base" required />
             
             {/* Location Input with Autocomplete */}
             <div className="relative">

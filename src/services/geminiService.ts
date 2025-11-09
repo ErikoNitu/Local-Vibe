@@ -94,7 +94,7 @@ const fetchMockEvents = async (): Promise<Event[]> => {
   }
 };
 
-const parseUserInputWithGemini = async (userInput: string, events: Event[]): Promise<{eventIds: string[], aiMessage: string}> => {
+const parseUserInputWithGemini = async (userInput: string, events: Event[], userLocation?: { lat: number; lng: number }): Promise<{eventIds: string[], aiMessage: string}> => {
   if (!import.meta.env.VITE_REACT_APP_GEMINI_API_KEY) {
     return { eventIds: [], aiMessage: "API key not configured. Please check your environment variables." };
   }
@@ -118,41 +118,67 @@ const parseUserInputWithGemini = async (userInput: string, events: Event[]): Pro
       return { eventIds: [], aiMessage: "Sorry, there are no events scheduled for today. Would you like me to recommend events for another day?" };
     }
 
-    const eventsContext = todayEvents.map((e, index) => 
-      `${index}. "${e.title}" (ID: ${e.id}, Category: ${e.category}): ${e.description} at ${new Date(e.date).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' })}, Free: ${e.isFree}, Organizer: ${e.organizer}`
-    ).join('\n');
+    // Helper function to calculate distance between two points (Haversine formula)
+    const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+      const R = 6371; // Earth's radius in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    };
 
-    const prompt = `You are an AI Event Assistant for finding events in Bucharest, Romania. Your role is to recommend ONLY TODAY'S events based on user's mood, interests, or specific activities they want to do.
+    const eventsContext = todayEvents.map((e, index) => {
+      const eventTime = new Date(e.date).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
+      const eventHour = new Date(e.date).getHours();
+      let distanceInfo = '';
+      
+      if (userLocation) {
+        const distance = calculateDistance(userLocation.lat, userLocation.lng, e.position.lat, e.position.lng);
+        distanceInfo = `, Distance from user: ${distance.toFixed(1)} km`;
+      }
+      
+      return `${index}. "${e.title}" (ID: ${e.id}, Category: ${e.category}, Hour: ${eventHour}:00): ${e.description} at ${eventTime}${distanceInfo}, Free: ${e.isFree}, Organizer: ${e.organizer}`;
+    }).join('\n');
+
+    const userLocationInfo = userLocation ? `\nUser's current location: Latitude ${userLocation.lat.toFixed(4)}, Longitude ${userLocation.lng.toFixed(4)}` : '';
+
+    const prompt = `You are an AI Event Assistant for finding events in Bucharest, Romania. Your role is to recommend ONLY TODAY'S events based on user's mood, interests, specific activities, preferred hour, or location proximity.
 
 Available events TODAY:
-${eventsContext}
+${eventsContext}${userLocationInfo}
 
 User's message: "${userInput}"
 
 IMPORTANT INSTRUCTIONS:
 1. Only recommend events from TODAY's list above.
-2. If you understand the user's mood/interests clearly, recommend UP TO 3 events from today that match best. Return a JSON object with:
+2. Consider the following when recommending:
+   - If user mentions a specific hour (e.g., "evening", "afternoon", "16:00", "after work"), prioritize events happening around that time.
+   - If user wants events "near me" or mentions location, prioritize events closest to their location.
+   - Consider user's mood and interests.
+3. If you understand the user's preferences clearly, recommend UP TO 3 events from today that match best. Return a JSON object with:
    {
      "eventIds": ["event-id-1", "event-id-2"],
-     "aiMessage": "Your friendly recommendation message explaining why these events match their interest. Include event times."
+     "aiMessage": "Your friendly recommendation message explaining why these events match their interest, including event times and distances if relevant."
    }
 
-3. If the user's intent is unclear or you need more information to make better recommendations, ask clarifying questions. Return:
+4. If the user's intent is unclear or you need more information to make better recommendations, ask clarifying questions. Return:
    {
      "eventIds": [],
      "aiMessage": "Your friendly question asking for clarification about today's activities"
    }
 
-4. If no TODAY's events match their criteria, return:
+5. If no TODAY's events match their criteria, return:
    {
      "eventIds": [],
      "aiMessage": "Sorry, no today's events match your criteria. But here are some today's activities available: [brief list]. What sounds interesting?"
    }
 
-5. Always respond in a friendly and conversational tone in Romanian.
-6. Never recommend more than 3 events.
-7. Consider the user's mood/activity preference when selecting from TODAY's events.
-8. Mention specific event times in your recommendations.
+6. Always respond in a friendly and conversational tone in Romanian.
+7. Never recommend more than 3 events.
+8. Mention specific event times and distances (if applicable) in your recommendations.
 
 Respond ONLY with the JSON object, no other text.`;
 
