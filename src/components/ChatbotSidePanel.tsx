@@ -49,7 +49,7 @@ const ChatbotSidePanel: React.FC<ChatbotSidePanelProps> = ({
         aria-hidden={!isOpen}
       />
       <div
-        className={`fixed top-0 left-0 h-full w-full max-w-md sm:max-w-sm md:max-w-md lg:max-w-lg bg-gray-800/40 backdrop-blur-md border-r border-white/20 text-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 h-full w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg bg-gray-800/40 backdrop-blur-md border-r border-white/20 text-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         role="dialog"

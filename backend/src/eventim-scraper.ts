@@ -1,6 +1,9 @@
 import * as fs from 'fs';
 import { GenerativeModel, GoogleGenerativeAI } from "@google/generative-ai";
+import dotenv from 'dotenv';
 
+// Load environment variables
+dotenv.config();
 
 export interface Event {
   title: string;
@@ -32,7 +35,7 @@ async function callModel(model: GenerativeModel, prompt: string, attempt = 1): P
 
 export async function scrapeEventim(): Promise<Event[]> {
   try {
-    const apiKey = "AIzaSyDpnzkshRcsXfgwtiej859bPQ-gQ56q9p0";
+    const apiKey = process.env.GEMINI_API_KEY;
     
     if (!apiKey) {
       throw new Error("GEMINI_API_KEY environment variable is not set");

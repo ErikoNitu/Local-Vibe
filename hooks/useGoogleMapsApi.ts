@@ -23,7 +23,7 @@ export const useGoogleMapsApi = () => {
     (window as any).handleAuthError = handleAuthError;
 
     const script = document.createElement('script');
-    const apiKey = "AIzaSyDlGmhPU-zCsNeiWtJbLnhjlaXr0DhK2fQ";
+    const apiKey = import.meta.env.VITE_REACT_APP_GOOGLE_MAPS_API_KEY;
 
     if (!apiKey) {
       const errorMessage = "Cheia API pentru Google Maps lipsește. Harta nu poate fi afișată.";

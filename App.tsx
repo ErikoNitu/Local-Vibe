@@ -285,6 +285,7 @@ const App: React.FC = () => {
 
       {selectedEvent && <EventCard event={selectedEvent} onClose={() => setSelectedEvent(null)} />}
 
+      {/* Add Event Button - Only shown on right side when user is logged in */}
       <AddEventButton onClick={() => setIsAddModalOpen(true)} />
 
       <AddEventModal 
@@ -293,10 +294,10 @@ const App: React.FC = () => {
         onAddEvent={handleAddEvent}
       />
 
-      {/* Chatbot Button */}
+      {/* Chatbot Button - Fixed on bottom left */}
       <button
         onClick={() => setIsChatbotOpen(true)}
-        className="fixed bottom-4 sm:bottom-6 left-4 sm:left-6 bg-gradient-to-r from-gray-600/70 to-gray-500/70 hover:from-gray-700/80 hover:to-gray-600/80 text-white rounded-full p-3 sm:p-4 shadow-lg transition-all duration-200 ease-out hover:scale-125 hover:shadow-xl z-30 text-lg sm:text-xl transform active:scale-95 backdrop-blur-md border border-gray-400/50 hover:shadow-gray-500/30"
+        className="fixed bottom-4 sm:bottom-7 left-4 sm:left-6 bg-gradient-to-r from-gray-600/70 to-gray-500/70 hover:from-gray-700/80 hover:to-gray-600/80 text-white rounded-full p-3 sm:p-4 md:p-5 shadow-lg transition-all duration-200 ease-out hover:scale-125 hover:shadow-xl z-30 text-lg sm:text-xl md:text-2xl transform active:scale-95 backdrop-blur-md border border-gray-400/50 hover:shadow-gray-500/30 min-h-12 sm:min-h-14 md:min-h-16 min-w-12 sm:min-w-14 md:min-w-16 flex items-center justify-center touch-manipulation"
         aria-label="Open chat"
       >
         💬

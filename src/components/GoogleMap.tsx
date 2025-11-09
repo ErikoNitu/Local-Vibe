@@ -133,16 +133,16 @@ const MarkerContent: React.FC<{ event: Event, isSelected: boolean, distance: num
   return (
     <div className="relative flex flex-col items-center group">
         <div 
-          className={`absolute bottom-full mb-3 w-max max-w-xs p-3 text-sm text-white bg-gray-900/80 backdrop-blur-md rounded-lg shadow-xl border border-white/20 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none transform group-hover:scale-100 scale-95 ${isSelected ? '!opacity-100 !scale-100' : ''}`}
+          className={`absolute bottom-full mb-2 sm:mb-3 w-max max-w-xs sm:max-w-sm p-2 sm:p-3 text-xs sm:text-sm text-white bg-gray-900/80 backdrop-blur-md rounded-lg shadow-xl border border-white/20 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none transform group-hover:scale-100 scale-95 ${isSelected ? '!opacity-100 !scale-100' : ''}`}
         >
-          <div className="font-semibold">{event.title}</div>
+          <div className="font-semibold line-clamp-2">{event.title}</div>
           <div className="text-xs text-gray-300 mt-1">📍 {distance.toFixed(1)} km</div>
         </div>
         <div 
-          className={`relative flex items-center justify-center w-10 h-10 rounded-full border-3 border-white/40 backdrop-blur-md transition-all duration-300 transform ${colors.bg} ${colors.border} text-white ${
+          className={`relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full border-3 border-white/40 backdrop-blur-md transition-all duration-300 transform ${colors.bg} ${colors.border} text-white cursor-pointer touch-manipulation ${
             isSelected 
               ? 'scale-135' 
-              : 'group-hover:scale-125'
+              : 'group-hover:scale-125 active:scale-110'
           }`}
           style={{
             boxShadow: '0 8px 20px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(255, 255, 255, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.2)'
