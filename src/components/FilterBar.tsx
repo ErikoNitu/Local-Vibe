@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { User } from 'firebase/auth';
 import { Filters, PriceFilter, DateFilter } from '../../types';
 import UserMenu from './UserMenu';
+import logoImg from '../../public/logo.png';
 
 interface FilterBarProps {
   filters: Filters;
@@ -24,7 +25,7 @@ const FilterBar: React.FC<FilterBarProps> = ({ filters, onFilterChange, eventCou
         {/* Mobile: Logo on top, filters below */}
         <div className="md:hidden mb-3">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Local Vibe Logo" className="w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0" />
+            <img src={logoImg} alt="Local Vibe Logo" className="w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0" />
             <h1 className="text-lg sm:text-xl font-bold text-white tracking-wider whitespace-nowrap" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.5)', fontFamily: 'Courier New, Courier, monospace, -apple-system, BlinkMacSystemFont, "Segoe UI"' }}>
               Local Vibe
             </h1>
@@ -35,7 +36,7 @@ const FilterBar: React.FC<FilterBarProps> = ({ filters, onFilterChange, eventCou
         <div className="flex flex-row items-center gap-2 md:gap-3 lg:gap-4">
           {/* Desktop: Logo */}
           <div className="hidden md:flex items-center gap-2 flex-shrink-0">
-            <img src="/logo.png" alt="Local Vibe Logo" className="w-8 h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 flex-shrink-0" />
+            <img src={logoImg} alt="Local Vibe Logo" className="w-8 h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 flex-shrink-0" />
             <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-white tracking-wider whitespace-nowrap" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.5)', fontFamily: 'Courier New, Courier, monospace, -apple-system, BlinkMacSystemFont, "Segoe UI"' }}>
               Local Vibe
             </h1>
