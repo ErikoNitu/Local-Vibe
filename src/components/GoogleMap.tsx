@@ -183,7 +183,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({ events, selectedEvent, onEventCli
         zoom: 13,
         styles: mapStyles,
         disableDefaultUI: true,
-        zoomControl: true,
+        zoomControl: false,
         mapId: 'LOCAL_VIBE_MAP_ID', // Add a mapId to enable Advanced Markers
       });
       setMap(newMap);
